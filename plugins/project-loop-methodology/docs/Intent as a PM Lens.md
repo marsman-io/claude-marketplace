@@ -1,135 +1,154 @@
-# Intent as a PM lens
+# Intent as a PM lens for agentic product work
 
 ## Intent
 
-When solving a real project problem, do not begin with the deliverable,
-the sprint plan, the OKR template, or the tooling. Begin by asking what
-should become true for the stakeholders the project serves. What outcome
-do they need? What capability do they unlock? What pain do they avoid?
-What decision do they make differently? A good project direction starts
-with intent: the desired change in the stakeholder's situation. From
-there, constraints — time, budget, headcount, compliance, dependencies,
-existing systems — become useful boundaries rather than the source of the
-plan.
+When judging work produced by agents, do not begin with the ticket,
+the implementation, the model's explanation, or the tool output. Begin
+by asking what should become true for the intended user and for the
+builder who delegated the work.
 
-Once the intent and boundaries are clear, explore multiple possible plans
-before committing to one. The answer might be a build, a buy, a fork, a
-deprecation, a process change, a partnership, a smaller version, or
-declining to do the project at all. Strong PMs do not simply decorate a
-solution or fill in a Gantt template; they shape the possibility space
-around a purpose, then make deliberate choices that move stakeholders
-toward the intended outcome.
+The builder may be the only explicit "stakeholder." That is fine. Name
+two roles when possible:
+
+- **Intent owner** — the person who knew what they wanted and delegated
+  the work.
+- **Intended user** — the person who must be able to understand, decide,
+  complete, avoid, recover from, or trust something after the work lands.
+
+A good product direction starts with intent: the desired change in the
+user's situation. From there, constraints such as time, platform,
+existing code, accessibility, model uncertainty, context limits,
+deployment risk, and manual verification effort become useful boundaries
+rather than a substitute for the idea.
+
+The key product question is not "did the agent complete the task?" It
+is "does the artifact now express the delegated intent?" An agent can
+make a plausible change, pass tests, and still miss the product meaning.
+This lens exists to expose that mismatch.
 
 ## Constraints
 
-Constraints are not obstacles to delivery; they are the material delivery
-works with. A strong PM pays attention to what must be true before
-deciding what to build, in what order, by when: stakeholder availability,
-team capacity, dependency latency, regulatory requirements, contractual
-deadlines, brand commitments, budget envelope, opportunity costs, and
-failure modes that the organization will not tolerate. These constraints
-define the actual problem space, separating wishful planning from a plan
-that survives contact with real teams, real customers, and real
-calendars.
+Constraints are not obstacles to product judgment; they are the material
+the judgment works with. A strong product builder pays attention to what
+must be true before deciding what to ask an agent to change: the target
+user's context, the screen or workflow being touched, existing APIs,
+data shape, deployment surface, quality bar, reversibility, and the
+evidence available after the agent finishes.
 
-Constraint-based PM means learning to ask: What must this project
-support? What must never happen? What conditions will it be delivered
-under? What tradeoffs are already fixed? What can still vary? Once those
-boundaries are clear, scope, sequencing, milestones, and stakeholder
-contracts become more grounded — they are responses to the shape of the
-problem rather than arbitrary choices.
+Constraint-based PM in this setting means learning to ask:
+
+- What must the result allow the user to do or understand?
+- What must never break?
+- Which assumptions did the agent have to infer?
+- Which parts of the result can be verified from local artifacts?
+- Which parts remain judgment calls because analytics, interviews, or a
+  broad user base are unavailable?
+
+Once those boundaries are clear, scope, sequencing, acceptance checks,
+and follow-up prompts become responses to the shape of the problem
+rather than arbitrary project-management ceremony.
 
 ## The PM knob framework
 
-Many real project decisions feel overwhelming because they contain too
-many possible options. A knob framework turns the problem into a small
-set of meaningful variables. Each knob represents something the PM can
-adjust:
+Many agentic product decisions feel overwhelming because the builder
+has delegated to a capable but opaque worker. A knob framework turns the
+problem into a small set of meaningful variables. Each knob represents
+something the builder can adjust before or after delegation:
 
 ```
 Knob 1: Scope
-How much of the problem are we trying to solve?
+How much of the intended behavior should this pass cover?
 
-Knob 2: Speed
-How fast does it need to deliver?
+Knob 2: Fidelity
+How exact does the match to intent need to be: rough scaffold, usable
+workflow, polished product surface, or production-safe behavior?
 
-Knob 3: Quality
-What level of polish / reliability does the outcome require?
+Knob 3: Evidence
+What proof will count: tests, screenshots, demo path, diff inspection,
+logs, acceptance checklist, or manual use?
 
-Knob 4: Cost
-What's the budget envelope — money, headcount, opportunity?
+Knob 4: Context budget
+How much product intent, code context, prior attempts, and constraints
+does the agent need in order not to guess?
 
 Knob 5: Risk tolerance
-What happens if we ship something that doesn't work? How big is the bet?
+What happens if the agent's interpretation is wrong? How reversible is
+the change?
 
-Knob 6: Coordination overhead
-How tightly does this depend on other teams / vendors / systems?
+Knob 6: Integration surface
+How many files, workflows, data contracts, prompts, or user paths does
+this touch?
 
-Knob 7: Stakeholder engagement
-How much access / signoff do we need at each milestone?
+Knob 7: Review depth
+How much human judgment is needed after the agent finishes?
 ```
 
 The knobs are **interdependent**. Moving one moves others:
 
 ```
 More scope
-→ longer timeline
-→ more coordination
-→ more risk of mid-flight surprise
+→ more integration surface
+→ more hidden assumptions
+→ more review depth
 
-More speed
-→ less polish
-→ more rework later
-→ less stakeholder review
+Higher fidelity
+→ more evidence needed
+→ tighter context requirements
+→ less tolerance for agent improvisation
 
-Less risk tolerance
-→ more validation
-→ smaller scope per release
-→ longer overall timeline
+Lower review depth
+→ smaller scope
+→ stronger automated checks
+→ more explicit acceptance criteria
 ```
 
 The framework gives you something to reason with. A vague problem like:
 
 ```
-How should we run this initiative?
+Did the agents build the thing I meant?
 ```
 
 becomes:
 
 ```
-We need a project with:
-  Knob: Scope — medium (one customer segment, two surfaces)
-  Knob: Speed — fast (3-month delivery)
-  Knob: Quality — operational (good enough for one segment)
-  Knob: Cost — low (one team, no new hires)
-  Knob: Risk — medium (we can ship a smaller version if we have to)
-  Knob: Coordination — low (don't need other teams)
-  Knob: Stakeholder engagement — light (CEO check-in monthly)
+We delegated a change with:
+  Knob: Scope — one checkout flow state, not the whole account system
+  Knob: Fidelity — usable product behavior, not a throwaway scaffold
+  Knob: Evidence — screenshot + happy-path test + diff inspection
+  Knob: Context — issue intent, route file, existing component pattern
+  Knob: Risk — medium; reversible behind one feature branch
+  Knob: Integration — one route, one API call, one persisted field
+  Knob: Review depth — human checks copy, flow, and edge case behavior
 ```
 
-That is a much more useful starting point. It gives the team something
-to plan against.
+That is a much more useful starting point. It gives the builder and the
+agent a shared object to inspect.
 
 ## The altitude question
 
-The PM equivalent of the design "altitude" question: how is the project
-organized — and is that organization aligned with stakeholder intent?
+The PM equivalent of the design "altitude" question: how is the work
+organized, and is that organization aligned with intent?
 
-- **Output altitude** — organized around what got shipped. Release notes,
-  burndown charts, completion lists. "We delivered X."
-- **Activity altitude** — organized around what people are doing. Sprint
-  boards, calendar, Gantt charts. "Here is what the team is working on."
-- **Outcome altitude** — organized around what should become true.
-  OKRs, business value, stakeholder change. "Here is what changed for the
-  customer."
-- **Status altitude** — organized around current condition. Health
-  dashboards, RAG status, blocker logs. "Here is where we are right now."
+- **Output altitude** — organized around what got produced. Commits,
+  files changed, release notes, generated components. "The agent built
+  X."
+- **Activity altitude** — organized around what happened during work.
+  prompts, task lists, agent logs, TODOs, issue transitions. "Here is
+  what the agent did."
+- **Outcome altitude** — organized around what should become true for
+  the user. Acceptance checks, demo paths, user-visible behavior,
+  before/after screenshots. "Here is what changed for the user."
+- **Status altitude** — organized around current condition. Failing
+  tests, blockers, known gaps, unresolved questions. "Here is where the
+  work stands right now."
 
-The canonical gap: a project organized at output or activity altitude
-when stakeholder intent sits at outcome altitude. The team ships and
-moves; the stakeholder says "but did anything change for our customer?"
-That gap is invisible if you only look at activity dashboards. The
+The canonical gap for agentic product work: the artifacts are organized
+at output or activity altitude when the delegated intent sits at outcome
+altitude. The agent changed files and reported progress; the builder is
+left asking, "but can the user do the thing I meant?"
+
+That gap is invisible if you only inspect the agent's summary. The
 altitude question makes it visible.
 
 A confirmed alignment between current altitude and intent altitude is a
-valid finding. Not every project is misaligned.
+valid finding. Not every delegated change is misaligned.

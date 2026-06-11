@@ -1,6 +1,6 @@
 ---
 name: outcome-altitude-name
-description: Name a project's organization altitude — output, activity, outcome, or status. Foundation for outcome-altitude-gap and outcome-drift-audit. Triggers on "what altitude is this project organized at", "is this output or outcome focused", "is the team tracking activity or change".
+description: Name a product work target's organization altitude — output, activity, outcome, or status. Foundation for outcome-altitude-gap and outcome-drift-audit. Triggers on "what altitude is this organized at", "is this output or outcome focused", "is the agent tracking activity or user change".
 ---
 
 # Name the project altitude
@@ -9,14 +9,14 @@ Read `${CLAUDE_PLUGIN_ROOT}/docs/Intent as a PM Lens.md` (the altitude question 
 
 ## Procedure
 
-Examine how the target project is **organized** — what its status updates lead with, what its dashboards surface, what the team discusses in standup, what the stakeholders are shown. Then match to one of the canonical altitudes:
+Examine how the target work is **organized** — what its prompt leads with, what its issue emphasizes, what the diff changes, what screenshots / tests prove, what the agent summary reports, and what the intended user is shown. Then match to one of the canonical altitudes:
 
-- **Output altitude** — organized around what got shipped. Release notes, completion lists, "we delivered X." Reports are lists of deliverables.
-- **Activity altitude** — organized around what people are doing. Sprint boards, Gantt charts, "here is what the team is working on." Reports are lists of activity.
-- **Outcome altitude** — organized around what should become true. OKRs, business value, stakeholder change. "Here is what changed for the customer / business." Reports are claims about state change.
-- **Status altitude** — organized around current condition. Health dashboards, RAG status, blocker logs. "Here is where we are right now." Reports are snapshots.
+- **Output altitude** — organized around what got produced. Commits, changed files, generated components, release notes. Reports are lists of deliverables.
+- **Activity altitude** — organized around what happened during work. prompts, task lists, agent logs, issue transitions, TODOs. Reports are lists of actions.
+- **Outcome altitude** — organized around what should become true. Acceptance checks, demo paths, user-visible behavior, before/after screenshots. Reports are claims about state change for the user.
+- **Status altitude** — organized around current condition. Failing tests, blockers, known gaps, unresolved questions. Reports are snapshots.
 
-Cite the artifact for what dominates (status doc filename, OKR page, sprint board).
+Cite the artifact for what dominates (prompt, issue, file, diff, screenshot, test output, demo note, or optional planning artifact).
 
 ## Output
 
@@ -30,4 +30,4 @@ Hybrid?  <yes | no>
   If hybrid: <which altitudes mix, in what ratio>
 ```
 
-A project running at output altitude that's grown an OKR section at the top is now a hybrid — name it. Hybrids are not failures by default; they're failures when the mix isn't intentional.
+A target running at output altitude that's grown an acceptance checklist at the top is now a hybrid — name it. Hybrids are not failures by default; they're failures when the mix isn't intentional.

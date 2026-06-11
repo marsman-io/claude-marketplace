@@ -1,7 +1,7 @@
 {
   "name": "project-loop-methodology",
-  "version": "0.1.0",
-  "description": "Four phase-aware diagnostic agents that critique any project or portfolio through five PM conceptual lenses (project loop, outcome altitude, project constraint cascade, stakeholder priority budget, project lifecycle). Agents detect which lifecycle phase the project is in (charter / plan / execute / adjust / replan) and compose the right skill chain — the same lens reads very differently per phase. Ships five canonical PM lens docs + 11 composable skills so the methodology travels with the plugin into any consumer project.",
+  "version": "0.2.0",
+  "description": "Five phase-aware diagnostic agents that critique agentic product work through six PM-derived lenses (project loop, outcome altitude, project constraint cascade, attention priority budget, intent verification, project lifecycle). Tuned for indie product builders / vibe-coders who delegate the build to agents and need to verify whether the built thing matches intent. Agents use prompts, issues, diffs, screenshots, tests, logs, demos, and acceptance criteria as first-class evidence; Linear, OKRs, stakeholders, roadmaps, and status reports are optional context only.",
   "author": {
     "name": "Patrick Holloway",
     "url": "https://github.com/marsman-io"
@@ -12,10 +12,12 @@
   "keywords": [
     "project-management",
     "pm",
-    "portfolio",
-    "roadmap",
+    "agentic-product",
+    "vibe-coding",
     "constraint-based-pm",
-    "stakeholder-priority",
+    "intent-verification",
+    "acceptance-criteria",
+    "priority-budget",
     "diagnostic-agents"
   ]
 }

@@ -1,192 +1,196 @@
-# Constraint-based project management
+# Constraint-based project management for agentic product work
 
-Constraint-based PM is a way to run projects by describing
-**relationships** between scope, time, cost, quality, risk, and
-dependencies — instead of fixed-point commitments.
+Constraint-based PM is a way to run product work by describing
+**relationships** between intent, scope, fidelity, risk, evidence,
+context, and integration surface instead of treating the agent's task as
+a fixed-point command.
 
-In traditional PM terms, instead of saying:
+In traditional task terms, instead of saying:
 
 ```
-Ship feature X
-by March 31
-with 4 engineers
-costing $200k
+Build feature X
+by Friday
+with the current codebase
 ```
 
 you define rules like:
 
 ```
-scope >= MVP (must include A, B; may include C, D)
-ship_date <= contractual deadline of April 15
-cost <= budget envelope of $250k
-quality >= "supports the one customer segment we promised"
-risk <= "we can ship without C if A and B are solid"
-A and B can ship together; C depends on B; D depends on C
+intent >= "a new user can finish onboarding without asking what to do next"
+scope <= one route + one persisted preference
+quality >= usable on mobile and desktop
+evidence >= screenshot + happy-path test + manual demo
+risk <= reversible without data migration
+context includes current component pattern and prior failed attempt
 ```
 
 The planning process solves for those relationships and produces a
-concrete plan that satisfies them.
+concrete delegation or review plan that satisfies them.
 
 ## Core idea
 
 A project is modeled as a set of constraints:
 
 ```
-Deliverable A is mandatory
-Deliverable B is mandatory
-Deliverable C is desired but droppable
-Deliverable D depends on C
-Total cost <= $X
-Total time <= Y weeks
-Quality must support compliance audit
+User outcome A is mandatory
+Behavior B is mandatory
+Nice-to-have C is droppable
+Data contract D must not change
+Manual review time <= one focused pass
+Verification must include the intended user path
 ```
 
-The planner then figures out the sequencing, scope, and resource
-allocation that satisfies those rules.
+The builder then figures out the sequencing, scope, and agent context
+that satisfies those rules.
 
 ## Hard vs soft constraints
 
 A **hard constraint** must be satisfied:
 
 ```
-ship by contractual deadline of April 15  (legally binding)
-must pass SOC 2 audit                       (compliance)
-data residency stays in EU                  (regulatory)
+must preserve existing saved data
+must work in the current deployment environment
+must not expose private user content
+must keep the public API contract stable
+must satisfy the acceptance criterion in the issue
 ```
 
 A **soft constraint** is preferred but negotiable:
 
 ```
-ideally finish before end of Q2
-prefer to use the existing team
-would like exec sponsor available for every milestone
+prefer the smallest diff
+prefer to reuse the existing component
+would like the agent to cover the edge case in this pass
+ideally keep the change easy to revert
 ```
 
-When time is limited, the team decides which soft constraints to relax.
-The hard ones stay.
+When pressure rises, the builder decides which soft constraints to
+relax. The hard ones stay.
 
 ## Intrinsic size
 
-Some work has natural duration:
+Some work has natural duration or complexity even when an agent is fast:
 
 ```
-contractual review takes ~2 weeks regardless of urgency
-new hires take 6+ weeks to ramp
-security review needs the calendar windows it needs
-end-of-quarter freezes are unavoidable
+understanding an unfamiliar data model requires context
+visual polish requires screenshots or a browser pass
+schema changes require migration thinking
+auth and permissions require explicit verification
+ambiguous intent requires a clarification or a smaller bet
 ```
 
-Good project planning combines external rules with intrinsic durations
-that cannot be compressed.
+Good planning combines external urgency with intrinsic complexity that
+cannot be wished away by delegation.
 
 ## Priorities
 
 Some constraints matter more than others:
 
 ```
-shipping at all is non-negotiable
-shipping ON TIME is preferred but can flex 1-2 weeks
-shipping with deliverable C is desired but droppable
-shipping with full polish is the most droppable
+matching the intended user outcome is non-negotiable
+shipping every nice-to-have can flex
+using the first implementation approach is droppable
+keeping the change reviewable is more important than broad scope
 ```
 
-When the planner has to break something, this priority order tells it
-*which* constraint to relax. Without explicit priorities, the project
-relaxes whichever constraint is loudest, which is usually the wrong one.
+When the plan has to break something, this priority order tells it
+*which* constraint to relax. Without explicit priorities, the agent or
+the builder relaxes whichever constraint is least visible, which is
+usually the wrong one.
 
 ## The classic PM triangle
 
-The famous scope/time/cost/quality triangle is the canonical example of
-interdependent constraints:
+The familiar scope/time/cost/quality triangle still exists, but "cost"
+often means attention, context, review effort, and risk:
 
 ```
-fix scope + time → cost varies (probably grows)
-fix scope + cost → time varies (probably grows)
-fix time + cost → scope varies (probably shrinks)
-fix everything   → quality breaks silently
+fix scope + speed -> review depth varies, usually shrinks
+fix scope + review depth -> speed varies, usually slows
+fix speed + review depth -> scope varies, usually shrinks
+fix everything -> quality breaks silently
 ```
 
-Pretending you can fix all four is the canonical project failure. Naming
-which three you've fixed and which one is the absorbing buffer is the
-constraint-based move.
+Pretending you can fix all four is the canonical project failure.
+Naming which three you've fixed and which one is the absorbing buffer is
+the constraint-based move.
 
 ## Dependencies as relationships
 
-Most project plans treat dependencies as fixed orderings ("A before B").
-A constraint-based view treats them as relationships:
+Most agent tasks treat dependencies as an ordered list ("edit A, then
+B"). A constraint-based view treats them as relationships:
 
 ```
-B requires A's API contract  (not all of A)
-B can start when A reaches checkpoint X
-B's deadline shifts if A's checkpoint X slips
-B can run partially in parallel with A's late stages
+UI B requires API A's response shape, not all of API A
+test C can start once the behavior contract is named
+copy D depends on the product intent, not the component implementation
+demo path E breaks if auth state F changes
 ```
 
-This is the difference between sequential planning and critical-path
-planning. It surfaces *what part* of each upstream dependency you need
-and *when*, which usually opens parallelism that a sequential plan
-hides.
+This surfaces *what part* of each upstream dependency matters and *when*,
+which usually opens a smaller, safer path than a broad rewrite.
 
 ## Important concepts
 
 ### Pinned constants
 
 Some values must not move regardless of what else changes. These are the
-project's hard constraints made explicit: regulatory deadlines, customer
-commitments, executive promises, brand obligations. Name them up front.
-When something has to give, it cannot be one of these.
+project's hard constraints made explicit: user trust, data safety,
+public API contracts, existing design conventions, deployment limits,
+accessibility floors, payment behavior, legal or compliance boundaries.
+Name them up front. When something has to give, it cannot be one of
+these.
 
 ### Failure modes at the extremes
 
 For each soft input, name what breaks at min and max:
 
-- **Scope too small** → deliverable doesn't meet stakeholder intent
-- **Scope too big** → timeline collapses, team burns out
-- **Speed too high** → quality cliff, rework debt
-- **Speed too low** → opportunity cost, stakeholder confidence erodes
-- **Cost too low** → resourcing failure, key people leave
-- **Risk too low** → over-validation, never ship
-- **Risk too high** → ship-and-pray, large blast radius if wrong
+- **Scope too small** -> artifact does not satisfy intent
+- **Scope too big** -> diff becomes unreviewable and hidden assumptions multiply
+- **Speed too high** -> agent guesses, verification thins out
+- **Speed too low** -> momentum dies and context goes stale
+- **Context too low** -> agent optimizes for the wrong shape
+- **Risk too high** -> small prompt becomes large product blast radius
+- **Review too low** -> plausible output ships without product judgment
 
 Knowing the extremes lets you find the safe operating range.
 
-## Constraint-based PM vs schedule-based PM
+## Constraint-based PM vs task-list PM
 
-Schedule-based PM says:
+Task-list PM says:
 
 ```
-Here is the Gantt chart.
-This task takes 5 days, then this one takes 3.
-Total: 28 working days, ship March 31.
+Here is the issue.
+Do these steps.
+Mark it done.
 ```
 
 Constraint-based PM says:
 
 ```
+Here is the intent.
 Here are the hard constraints.
-Here are the soft inputs we're tuning.
-The plan emerges from the constraints; the dates are derived, not
-declared.
+Here are the soft inputs we are tuning.
+The implementation path emerges from the constraints; the checklist is a
+projection, not the model.
 ```
 
-The Gantt chart is a *projection* of a constraint model, not the model
-itself. Treating the chart as the model is the canonical project failure
-mode that leads to plans nobody believes.
+The issue list is a projection of a constraint model, not the model
+itself. Treating the list as the model is the canonical failure mode
+that leads to agent-built work nobody believes.
 
 ## In practice
 
-A constraint-based project plan usually defines:
+A constraint-based product plan usually defines:
 
 ```
-hard pins (regulatory, contractual, brand)
-soft inputs (scope, speed, quality, cost, risk, coordination, engagement)
+hard pins (user trust, data, API, deployment, accessibility)
+soft inputs (scope, fidelity, evidence, context, risk, integration, review)
 priority ordering when something has to give
-dependency relationships, including which PART of each upstream
+dependency relationships, including which PART of each upstream matters
 critical-path identification
-slack budgets per phase
+verification budget per pass
 failure-mode trigger conditions
 ```
 
-The goal is not "predictable delivery." It is "a plan that remains valid
-under changing conditions" — projects whose model survives contact with
-the real world.
+The goal is not "perfect prediction." It is "a plan that remains useful
+after a capable black box has made choices on your behalf."

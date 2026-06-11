@@ -1,135 +1,137 @@
 # Project lifecycle
 
-A project is not a static plan. It passes through phases, and the
-questions that matter — and the answers that work — shift with each.
-The four lenses (project loop, outcome altitude, project cascade,
-priority budget) still apply at every phase, but they read very
-differently in a chartering-stage project vs. one mid-execution vs. one
-that's in trouble and being replanned.
+A delegated product project is not a static task. It passes through
+phases, and the questions that matter — and the answers that work —
+shift with each. The four lenses (project loop, outcome altitude,
+project cascade, priority budget) still apply at every phase, but they
+read very differently when intent is being captured vs. when an agent
+has already produced a diff.
 
-Naming the phase first lets the right procedure run. Asking "what's the
-critical path?" of a project that doesn't have an agreed scope yet
-wastes the loop. Asking "what's the blast radius of this change?" of a
-project that hasn't started yet is incoherent.
+Naming the phase first lets the right procedure run. Asking "what is
+the blast radius of this change?" before the intended behavior is named
+wastes the loop. Asking "what is the intended outcome?" after the diff
+exists may still matter, but only if the artifact no longer makes that
+outcome inspectable.
 
 ## The five phases
 
 ### 1. Charter
 
-The idea exists; a plan does not. The decisions are first-order: what
-problem are we solving? for whom? what are the hard constraints (a
-deadline, a contract, a regulation)? what is the scope envelope? who
-owns this?
+The idea exists; a delegation plan does not. The decisions are
+first-order: what problem are we solving, for whom, what should become
+true, what must not break, and what evidence will prove the result?
 
-**What dominates**: identifying intent (what should become true for
-which stakeholder), naming the hard pins, scoping the soft inputs that
-the plan will tune. There is no "plan vs reality" yet — both sides are
+**What dominates**: identifying intent (what should become true for the
+intended user), naming hard pins, and scoping the soft inputs the plan
+will tune. There is no "plan vs reality" yet — both sides are
 abstraction.
 
-**Failure mode — charter-without-bounds**: producing a 40-page brief
-that names every option without committing to any. Charters that don't
-commit to *scope* and *priority* defer the hard decisions into Plan,
-where they cost more.
+**Failure mode — intent-without-bounds**: a prompt or issue that names
+many wishes but no acceptance shape. Without scope, pins, and evidence,
+the agent must guess which parts matter.
 
 ### 2. Plan
 
-Charter exists; team is working out how to deliver it. The decisions
-are about whether the abstractions hold under contact with estimates,
-dependencies, and capacity. This is where most "we didn't realize"
-moments surface: the team you expected isn't available, the upstream API
-isn't ready, the design discovery takes longer than budgeted.
+Intent exists; the builder is working out how to delegate or sequence
+the work. The decisions are about whether the abstraction holds under
+contact with the codebase, available context, integration surface, and
+verification options. This is where most "we did not realize" moments
+surface: the existing API shape is different, the screen is doing two
+jobs, or the agent needs a narrower prompt.
 
-**What dominates**: testing the charter by *planning against it*.
-Identifying which constraints the team can actually meet, which they
-can't, and what the planner is asking for that wasn't in the charter.
+**What dominates**: testing the intent by planning against it. Identify
+which constraints can actually be met, which cannot, and what the plan
+asks the agent to infer.
 
-**Failure mode — over-plan**: a 200-line Gantt chart for a project
-whose intent isn't yet validated. The cost of replanning a heavy plan
-discourages the planning team from surfacing problems. Plans should
-match the certainty they're describing.
+**Failure mode — over-plan**: a large task breakdown for intent that
+has not been validated. The cost of changing a heavy plan discourages
+the builder from noticing that a smaller experiment would teach more.
 
 ### 3. Execute
 
-Plan is in motion. The team is doing the work. The decisions are about
-*monitoring for drift* — where is the project diverging from plan, and
-which divergences matter? Some drift is fine; some is the early signal
-of project failure.
+The plan is in motion or the agent has produced work. The decisions are
+about *monitoring for drift* — where is the artifact diverging from
+intent, and which divergences matter? Some drift is fine; some is the
+early signal that the agent solved the wrong problem.
 
-**What dominates**: cross-team / cross-workstream observation. The
-project is now a portfolio of activities; the PM job is no longer "make
-the plan" but "see the patterns the team can't see from inside their
-work."
+**What dominates**: cross-artifact observation. Read the issue, prompt,
+diff, tests, screenshots, logs, and demo behavior together. The PM job
+is no longer "make the plan" but "see the pattern the artifact does not
+explain by itself."
 
-**Failure mode — per-task management**: managing each blocker
-individually as it arrives rather than seeing the patterns. If three
-blockers all trace to the same upstream team, the finding is "that
-team's capacity is wrong," not "three blockers."
+**Failure mode — per-task management**: managing each TODO, failing
+test, or changed file individually rather than seeing the pattern. If
+three symptoms all trace to the same missing intent constraint, the
+finding is "the agent was never given the product boundary," not "three
+bugs."
 
 ### 4. Adjust
 
 A specific in-flight change request has arrived — scope expand, scope
-cut, timeline shift, resource change. The decisions are about *blast
-radius and tradeoffs*: what does this change cost in time, scope, or
-cost? does it preserve intent? is the change worth the disruption?
+cut, prompt revision, implementation swap, UI change, data-shape change.
+The decisions are about *blast radius and tradeoffs*: what does this
+change cost in scope, evidence, risk, or review? Does it preserve
+intent? Is the change worth the disruption?
 
-**What dominates**: impact tracing. The lens isn't "what should the
-project be?" — that was answered in Charter — it's "what breaks if we
+**What dominates**: impact tracing. The lens is not "what should the
+product be?" — that was answered in Charter — it is "what breaks if we
 move this?"
 
-**Failure mode — small-feeling changes that aren't**: a "small scope
-addition" that requires three weeks of architecture changes is not an
-adjustment. Failing to trace impact means absorbing more disruption
-than agreed.
+**Failure mode — small-feeling changes that are not**: a "small copy
+change" that alters the user's decision model, or a "quick schema
+change" that forces migrations and test rewrites. Failing to trace
+impact means absorbing more disruption than the builder intended.
 
 ### 5. Replan
 
-The project has drifted significantly from plan, or the underlying
-context has shifted so much that the current plan can't be patched.
-You're not making a small change; you're remaking the plan. The
-decisions are about *preservation*: which parts of the original
-charter still apply? which parts of the executed work still ladder to
-intent? what's the migration path from "current state" to "new plan"?
+The work has drifted significantly from intent, or the underlying
+context has shifted so much that the current plan cannot be patched.
+You are not making a small change; you are remaking the delegation. The
+decisions are about *preservation*: which parts of the original intent
+still apply, which parts of the produced work still carry value, and
+what migration path moves from "current artifact" to "intended product"?
 
-**What dominates**: triage. Distinguishing the work that's still
-load-bearing from the work that's become irrelevant.
+**What dominates**: triage. Distinguishing the work that is still
+load-bearing from the work that became plausible but irrelevant.
 
-**Failure mode — start over from scratch**: replanning from a blank
-page wastes the discovery the team has already paid for. Most
-replanning is fixable surgically — re-pin one or two constraints,
-collapse three workstreams into one, re-baseline the dates.
+**Failure mode — start over from scratch**: replanning from a blank page
+wastes the discovery already paid for. Most replanning is fixable
+surgically — re-pin one or two constraints, collapse a broad scope into
+one user path, or replace an ambiguous prompt with a sharper one.
 
 ## How each lens reads per phase
 
-The lenses don't change; the procedures do. The same `project-cascade`
+The lenses do not change; the procedures do. The same `project-cascade`
 lens runs `constraint-build` in Charter and `impact-trace` in Adjust.
 
 | Lens         | Charter                        | Plan                              | Execute                          | Adjust                            | Replan                            |
 |--------------|--------------------------------|-----------------------------------|----------------------------------|-----------------------------------|-----------------------------------|
-| Outcome      | name the intent / who benefits | first deliverables match intent?  | where has scope drifted?         | does this change move toward intent? | what was the original intent?   |
-| Cascade      | model the constraints          | test the plan                     | find broken dependencies         | trace blast radius                | collapse / re-pin constraints    |
-| Priority     | name the portfolio type        | allocate budget across 5 mechanisms | cross-initiative drift          | what does this change spend?      | systemic priority overspending   |
-| Project loop | what's the first test?         | iterate the plan fast             | where did we stop looping?       | is this worth a loop?             | merge multiple loops              |
+| Outcome      | name the intent / who benefits | first artifacts match intent?     | where has behavior drifted?      | does this change move toward intent? | what was the original intent?   |
+| Intent verify| write the acceptance criteria  | criteria cover failure + boundary?| built thing: gaps + drift?       | does the change still meet criteria? | re-derive criteria, re-check    |
+| Cascade      | model the constraints          | test the delegation plan          | find broken dependencies         | trace blast radius                | collapse / re-pin constraints    |
+| Priority     | name the work mode             | allocate attention across 5 mechanisms | cross-issue drift             | what does this change spend?      | systemic priority overspending   |
+| Project loop | what is the first test?        | iterate the plan fast             | where did we stop looping?       | is this worth a loop?             | merge multiple loops              |
 
 ## Detecting the phase
 
 Heuristic — what evidence shows up in the artifacts?
 
-- **No agreed scope, no team, no plan** → Charter
-- **Charter exists, team active, plan being written, dates fluid** → Plan
-- **Plan committed, work in motion, regular status updates, fixed dates** → Execute
-- **Single change request, plan baseline intact, focused tradeoff conversation** → Adjust
-- **Plan being remade, "the original plan is no longer valid" said aloud, re-baselining** → Replan
+- **No agreed intent, no acceptance shape, no delegation plan** -> Charter
+- **Intent exists, prompt / issue / plan being written, scope fluid** -> Plan
+- **Agent work in motion or diff produced, tests / screenshots / logs present** -> Execute
+- **Single requested change, baseline intent intact, focused tradeoff conversation** -> Adjust
+- **Plan being remade, "the original approach no longer works" said aloud, broad re-prompting or re-baselining** -> Replan
 
-A project can be in **multiple phases at once**: workstream A is in
-Execute while workstream B is in Replan because B's upstream just
-slipped. Phase per workstream, not per project.
+A project can be in **multiple phases at once**: one user path is in
+Execute while another is back in Charter because its intent was never
+named. Phase per workstream, not per repository.
 
 ## Why this taxonomy exists
 
-Without phase awareness, a PM critic asks the Charter questions of a
-project in Execute. The result is a useless answer: "you should name the
-intent" is true at Charter, useless when the intent is named and the
-question is which workstream to expedite.
+Without phase awareness, a PM critic asks the Charter questions of work
+that is already in Execute. The result is a useless answer: "you should
+name the intent" may be true at Charter, but in Execute the sharper
+question is which artifact stopped carrying that intent.
 
 Each agent in this plugin starts by detecting phase, then composes the
 skill set that matches the phase. The skills are the verbs (one
