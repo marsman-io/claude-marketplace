@@ -1,0 +1,17 @@
+{
+  "name": "claude-marketplace",
+  "owner": {
+    "name": "marsman-io",
+    "url": "https://github.com/marsman-io"
+  },
+  "metadata": {
+    "description": "Claude Code plugins published by marsman-io. Currently ships design-loop-methodology — four diagnostic agents that critique UI / system / cascade decisions through grounded conceptual lenses."
+  },
+  "plugins": [
+    {
+      "name": "design-loop-methodology",
+      "source": "./plugins/design-loop-methodology",
+      "description": "Four read-only diagnostic agents (design-loop, intent-lens, constraint-cascade, hierarchy-budget) plus the four canonical conceptual docs they ground in. Drop in to any project and point at any screen / feature / decision for a structured critique."
+    }
+  ]
+}
