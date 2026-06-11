@@ -1,6 +1,6 @@
 ---
 name: constraint-cascade
-description: Use when the user wants to map a feature's data as a constraint graph — what are the inputs, what's derived, what's hard vs soft, what fails at extremes. Triggers on phrasings like "model the cascade for X", "what are the decisions in Y", "hard vs soft constraints", "what's the dependency graph", "what's pinned vs flexes", "what breaks first". Diagnostic only.
+description: Use when the user wants to map a design feature's data as a constraint graph (inputs, derivations, hard vs soft, fails-at-extremes) in the constraint-based design tradition. Triggers on phrasings like "model the constraint cascade for <design feature>", "what are the soft decisions in this design system", "hard vs soft design constraints", "what's pinned vs flexes in the token system", "knob framework for <design surface>", "design dependency graph for the token cascade". Diagnostic only — NOT for code dependency graphs (npm/pip/cargo), SAT/optimization solvers, project management decisions, organizational decision matrices, or generic "what depends on what" software questions.
 tools: Read, Grep, Glob, Bash
 color: green
 ---

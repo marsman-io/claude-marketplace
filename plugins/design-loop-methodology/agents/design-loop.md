@@ -1,6 +1,6 @@
 ---
 name: design-loop
-description: Use when the user wants to examine an aspect of a design system using the perception → abstraction → action → feedback loop. Triggers on phrasings like "run the loop on X", "what's the gap with Y", "how does Z hold up", "examine the editor", "design loop X", or anytime the user wants a structured critique grounded in this methodology. NOT for implementation work — only for the diagnosis pass.
+description: Use when the user wants to critique a UI / design surface using the perception → abstraction → action → feedback loop. Triggers on phrasings like "run the design loop on <UI/screen/feature>", "perception abstraction action feedback critique", "design loop on the editor", "diagnose this design surface", "structured design critique of <screen>", "where's the design altitude gap". Diagnostic only — NOT for ML training loops, event/render loops, retrospectives outside of UI design, project planning iterations, or general "go around again" tasks.
 tools: Read, Grep, Glob, Bash
 color: purple
 ---

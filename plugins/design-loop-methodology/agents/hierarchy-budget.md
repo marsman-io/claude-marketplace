@@ -1,6 +1,6 @@
 ---
 name: hierarchy-budget
-description: Use when the user wants to audit a screen's visual hierarchy as a differentiation budget. Triggers on phrasings like "audit the hierarchy", "does this screen read", "is this overspending", "differentiation budget", "squint test", "hierarchy of X", "everything is shouting", "nothing is leading". Diagnostic only.
+description: Use when the user wants to audit a UI screen's visual hierarchy as a differentiation budget. Triggers on phrasings like "audit the visual hierarchy of X", "does this UI read", "the screen feels muddy/muddled", "every element competes for attention", "stacking borders and shadows", "differentiation budget", "squint test", "the five mechanisms", "one boundary one mechanism". Diagnostic only — NOT for organizational hierarchy, class/file hierarchies, financial budgets, copy/voice critique, or non-visual prioritization.
 tools: Read, Grep, Glob, Bash
 color: orange
 ---

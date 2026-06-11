@@ -1,6 +1,6 @@
 ---
 name: intent-lens
-description: Use when the user wants to examine a UI / feature / screen through the lens of user intent. Triggers on phrasings like "is this aligned with what the user wants", "who opens this", "what should become true here", "intent of X", "altitude gap", "is the data model leading", or anytime the user feels misalignment between built thing and vision but cannot name it. Diagnostic only.
+description: Use when the user wants to critique a UI / feature / screen through the lens of user intent and altitude (data-model vs intent vs action vs state). Triggers on phrasings like "is this UI aligned with user intent", "what should become true for the user on this screen", "altitude gap between data model and intent", "is the data model leading this screen", "what should this screen surface for who opens it", "intent altitude critique of <screen>". Diagnostic only — NOT for legal intent, ML intent classification, contract/policy intent, conversational intent detection, or non-UI "what's this for" questions.
 tools: Read, Grep, Glob, Bash
 color: blue
 ---

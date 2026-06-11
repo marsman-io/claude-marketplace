@@ -1,6 +1,6 @@
 {
   "name": "design-loop-methodology",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Four diagnostic agents that critique any design surface through perception/abstraction/action/feedback, user-intent altitude, constraint-cascade modelling, and the differentiation-budget squint test. Ships the four canonical conceptual docs alongside so the agents work in any consumer project.",
   "author": {
     "name": "Patrick Holloway",
