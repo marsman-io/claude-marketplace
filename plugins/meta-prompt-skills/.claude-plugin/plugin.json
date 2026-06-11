@@ -1,0 +1,24 @@
+{
+  "name": "meta-prompt-skills",
+  "version": "0.1.0",
+  "description": "A flat collection of standalone meta-prompt skills, each a cleaned port of a battle-tested community prompt (plus an original prompt-improver). Ships humanizer (strip AI tells from writing), video-distill (turn a video into layered structured notes), sota-scan (benchmark a project against top peers — every gap names a real project), session-mine (mine recent transcripts for recurring corrections and propose rules/skills), clarify-deep (gather context, then ask few deep blind-spot clarifying questions), book-to-skill (turn a non-fiction book's method into one or two installable skills), and prompt-improver (improve an existing prompt/skill in auto or interactive mode). No agents, no shared docs — each skill stands alone, picks its own mode where relevant, and auto-routes on its own triggers.",
+  "author": {
+    "name": "Patrick Holloway",
+    "url": "https://github.com/marsman-io"
+    },
+  "homepage": "https://github.com/marsman-io/claude-marketplace",
+  "repository": "https://github.com/marsman-io/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "meta-prompt",
+    "prompt-engineering",
+    "humanizer",
+    "ai-tells",
+    "video-summary",
+    "competitive-analysis",
+    "clarifying-questions",
+    "skill-generator",
+    "prompt-improver",
+    "claude-code-skills"
+  ]
+}

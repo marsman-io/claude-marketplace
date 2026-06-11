@@ -17,7 +17,8 @@ That registers this repo as a source of plugins; nothing is installed yet.
 | Plugin | Status | Description |
 |---|---|---|
 | [`design-loop-methodology`](./plugins/design-loop-methodology) | v0.2.0 | Four phase-aware diagnostic agents (`design-loop`, `intent-lens`, `constraint-cascade`, `hierarchy-budget`) that critique UI / design surfaces through five conceptual lenses + a lifecycle taxonomy (bootstrap / apply / audit / tweak / refactor). 11 composable skills. |
-| [`project-loop-methodology`](./plugins/project-loop-methodology) | v0.1.0 | Four phase-aware diagnostic agents (`project-loop`, `outcome-altitude`, `project-cascade`, `priority-budget`) that critique projects / portfolios through five PM lenses + a lifecycle taxonomy (charter / plan / execute / adjust / replan). Mirror of the design plugin for the PM persona. 11 composable skills. |
+| [`project-loop-methodology`](./plugins/project-loop-methodology) | v0.1.0 | Four phase-aware diagnostic agents (`project-loop`, `outcome-altitude`, `project-cascade`, `priority-budget`) that critique agentic product work through PM-derived lenses + a lifecycle taxonomy (charter / plan / execute / adjust / replan). Tuned for indie product builders checking whether agent-built work matches intent. 11 composable skills. |
+| [`meta-prompt-skills`](./plugins/meta-prompt-skills) | v0.1.0 | A flat collection of seven standalone meta-prompt skills: `humanizer`, `video-distill`, `sota-scan`, `session-mine`, `clarify-deep`, `book-to-skill`, `prompt-improver` (auto / interactive mode). No agents — each skill auto-routes on its own triggers. Unrelated to the `*-loop-methodology` plugins; same marketplace only. |
 
 ### Install a plugin from the marketplace
 

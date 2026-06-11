@@ -5,7 +5,7 @@
     "url": "https://github.com/marsman-io"
   },
   "metadata": {
-    "description": "Claude Code plugins published by marsman-io. A family of phase-aware diagnostic-agent plugins — each ships four read-only agents that critique a domain (design, project management, …) through grounded conceptual lenses + a lifecycle taxonomy."
+    "description": "Claude Code plugins published by marsman-io. A family of phase-aware diagnostic-agent plugins — each ships read-only agents that critique a domain (design, project management, …) through grounded conceptual lenses + a lifecycle taxonomy — plus standalone skill collections."
   },
   "plugins": [
     {
@@ -16,7 +16,12 @@
     {
       "name": "project-loop-methodology",
       "source": "./plugins/project-loop-methodology",
-      "description": "Four phase-aware diagnostic agents (project-loop, outcome-altitude, project-cascade, priority-budget) that critique projects / portfolios / change requests through five PM lenses (loop, outcome altitude, constraint, priority budget, lifecycle). Detects charter/plan/execute/adjust/replan and composes the right skill chain. Mirror of design-loop-methodology for the PM persona."
+      "description": "Four phase-aware diagnostic agents (project-loop, outcome-altitude, project-cascade, priority-budget) that critique agentic product work through PM-derived lenses (loop, outcome altitude, constraint, priority budget, lifecycle). Detects charter/plan/execute/adjust/replan and composes the right skill chain for indie product builders checking whether agent-built work matches intent."
+    },
+    {
+      "name": "meta-prompt-skills",
+      "source": "./plugins/meta-prompt-skills",
+      "description": "A flat collection of seven standalone meta-prompt skills: humanizer (strip AI tells from prose), video-distill (video → layered notes), sota-scan (benchmark a project against top peers, every gap names a real project), session-mine (mine recent transcripts for recurring corrections), clarify-deep (gather context then ask deep blind-spot questions), book-to-skill (turn a non-fiction book's method into installable skills), and prompt-improver (improve an existing prompt/skill in auto or interactive mode). No agents — each skill picks its own mode where relevant and auto-routes on its own triggers."
     }
   ]
 }
