@@ -5,13 +5,18 @@
     "url": "https://github.com/marsman-io"
   },
   "metadata": {
-    "description": "Claude Code plugins published by marsman-io. Currently ships design-loop-methodology — four diagnostic agents that critique UI / system / cascade decisions through grounded conceptual lenses."
+    "description": "Claude Code plugins published by marsman-io. A family of phase-aware diagnostic-agent plugins — each ships four read-only agents that critique a domain (design, project management, …) through grounded conceptual lenses + a lifecycle taxonomy."
   },
   "plugins": [
     {
       "name": "design-loop-methodology",
       "source": "./plugins/design-loop-methodology",
-      "description": "Four read-only diagnostic agents (design-loop, intent-lens, constraint-cascade, hierarchy-budget) plus the four canonical conceptual docs they ground in. Drop in to any project and point at any screen / feature / decision for a structured critique."
+      "description": "Four phase-aware diagnostic agents (design-loop, intent-lens, constraint-cascade, hierarchy-budget) that critique UI / design-system surfaces through five conceptual lenses (loop, intent, constraint, hierarchy, lifecycle). Detects bootstrap/apply/audit/tweak/refactor and composes the right skill chain. Ships 11 composable skills."
+    },
+    {
+      "name": "project-loop-methodology",
+      "source": "./plugins/project-loop-methodology",
+      "description": "Four phase-aware diagnostic agents (project-loop, outcome-altitude, project-cascade, priority-budget) that critique projects / portfolios / change requests through five PM lenses (loop, outcome altitude, constraint, priority budget, lifecycle). Detects charter/plan/execute/adjust/replan and composes the right skill chain. Mirror of design-loop-methodology for the PM persona."
     }
   ]
 }

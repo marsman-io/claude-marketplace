@@ -16,7 +16,8 @@ That registers this repo as a source of plugins; nothing is installed yet.
 
 | Plugin | Status | Description |
 |---|---|---|
-| [`design-loop-methodology`](./plugins/design-loop-methodology) | v0.1.0 | Four read-only diagnostic agents (`design-loop`, `intent-lens`, `constraint-cascade`, `hierarchy-budget`) that critique any design surface through grounded conceptual lenses. Ships the four lens docs so the methodology travels with the plugin. |
+| [`design-loop-methodology`](./plugins/design-loop-methodology) | v0.2.0 | Four phase-aware diagnostic agents (`design-loop`, `intent-lens`, `constraint-cascade`, `hierarchy-budget`) that critique UI / design surfaces through five conceptual lenses + a lifecycle taxonomy (bootstrap / apply / audit / tweak / refactor). 11 composable skills. |
+| [`project-loop-methodology`](./plugins/project-loop-methodology) | v0.1.0 | Four phase-aware diagnostic agents (`project-loop`, `outcome-altitude`, `project-cascade`, `priority-budget`) that critique projects / portfolios through five PM lenses + a lifecycle taxonomy (charter / plan / execute / adjust / replan). Mirror of the design plugin for the PM persona. 11 composable skills. |
 
 ### Install a plugin from the marketplace
 
