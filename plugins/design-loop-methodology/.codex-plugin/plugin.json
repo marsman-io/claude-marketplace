@@ -1,0 +1,39 @@
+{
+  "name": "design-loop-methodology",
+  "version": "0.2.0",
+  "description": "Four phase-aware diagnostic agents that critique any design surface through five conceptual lenses (design loop, intent, constraint cascade, hierarchy budget, lifecycle). Agents detect which lifecycle phase your design system is in (bootstrap / apply / audit / tweak / refactor) and compose the right skill chain. Ships five canonical lens docs and 11 composable skills so the methodology travels with the plugin into any consumer project.",
+  "author": {
+    "name": "Patrick Holloway",
+    "url": "https://github.com/marsman-io"
+  },
+  "homepage": "https://github.com/marsman-io/claude-marketplace",
+  "repository": "https://github.com/marsman-io/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "design-system",
+    "ux",
+    "ui",
+    "design-review",
+    "constraint-based-design",
+    "hierarchy",
+    "diagnostic-agents"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Design Loop Methodology",
+    "shortDescription": "Phase-aware design-system critique skills.",
+    "longDescription": "Use design-loop-methodology to critique UI and design-system surfaces through grounded lenses for lifecycle phase, intent, constraint cascades, and hierarchy clarity. The Codex plugin exposes the composable skill procedures; the Claude Code plugin also ships subagent workflows.",
+    "developerName": "Patrick Holloway",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/marsman-io/claude-marketplace",
+    "brandColor": "#2563EB",
+    "defaultPrompt": [
+      "Run the design loop on this UI.",
+      "Audit hierarchy for this screen.",
+      "Trace the constraint cascade for this change."
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "marsman-io",
+  "interface": {
+    "displayName": "marsman-io"
+  },
+  "plugins": [
+    {
+      "name": "design-loop-methodology",
+      "source": {
+        "source": "local",
+        "path": "./plugins/design-loop-methodology"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "project-loop-methodology",
+      "source": {
+        "source": "local",
+        "path": "./plugins/project-loop-methodology"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "meta-prompt-skills",
+      "source": {
+        "source": "local",
+        "path": "./plugins/meta-prompt-skills"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
