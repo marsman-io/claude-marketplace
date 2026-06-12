@@ -1,0 +1,41 @@
+{
+  "name": "project-loop-methodology",
+  "version": "0.2.0",
+  "description": "Five phase-aware diagnostic agents that critique agentic product work through six PM-derived lenses (project loop, outcome altitude, project constraint cascade, attention priority budget, intent verification, project lifecycle). Tuned for indie product builders who delegate the build to agents and need to verify whether the built thing matches intent.",
+  "author": {
+    "name": "Patrick Holloway",
+    "url": "https://github.com/marsman-io"
+  },
+  "homepage": "https://github.com/marsman-io/claude-marketplace",
+  "repository": "https://github.com/marsman-io/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "project-management",
+    "pm",
+    "agentic-product",
+    "vibe-coding",
+    "constraint-based-pm",
+    "intent-verification",
+    "acceptance-criteria",
+    "priority-budget",
+    "diagnostic-agents"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Project Loop Methodology",
+    "shortDescription": "Intent checks for agent-built product work.",
+    "longDescription": "Use project-loop-methodology to critique agentic product work through PM-derived lenses for lifecycle phase, intent verification, outcome altitude, constraints, and priority budget. The Codex plugin exposes the composable skill procedures; the Claude Code plugin also ships subagent workflows.",
+    "developerName": "Patrick Holloway",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/marsman-io/claude-marketplace",
+    "brandColor": "#059669",
+    "defaultPrompt": [
+      "Check whether this build matches intent.",
+      "Draft acceptance criteria for this task.",
+      "Run the project loop on this feature."
+    ]
+  }
+}
