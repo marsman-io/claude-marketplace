@@ -22,6 +22,16 @@
       "name": "meta-prompt-skills",
       "source": "./plugins/meta-prompt-skills",
       "description": "A flat collection of seven standalone meta-prompt skills: humanizer (strip AI tells from prose), video-distill (video → layered notes), sota-scan (benchmark a project against top peers, every gap names a real project), session-mine (mine recent transcripts for recurring corrections), clarify-deep (gather context then ask deep blind-spot questions), book-to-skill (turn a non-fiction book's method into installable skills), and prompt-improver (improve an existing prompt/skill in auto or interactive mode). No agents — each skill picks its own mode where relevant and auto-routes on its own triggers."
+    },
+    {
+      "name": "indie-founder-lenses",
+      "source": "./plugins/indie-founder-lenses",
+      "description": "Four phase-aware, read-only diagnostic lenses for the surfaces a solo founder lives on — launch-readiness-lens, founder-focus-budget, pricing-page-lens, and conversion-intent-lens — each detecting its own phase and critiquing one founder surface (launch readiness, founder focus, pricing, landing-page conversion) against a cited artifact. Not a loop and not a methodology: no orchestrator, no shared lifecycle, no persona — independent critics that accept in-repo or pasted/external artifacts."
+    },
+    {
+      "name": "release-flow-skills",
+      "source": "./plugins/release-flow-skills",
+      "description": "A collection of git / PR / release-lifecycle skills for shipping software; the first is changelog-from-diff, which turns a git diff into a clean, grouped changelog / release-notes entry, user-invoked and never rewriting history."
     }
   ]
 }
