@@ -32,6 +32,11 @@
       "name": "release-flow-skills",
       "source": "./plugins/release-flow-skills",
       "description": "A collection of git / PR / release-lifecycle skills for shipping software; the first is changelog-from-diff, which turns a git diff into a clean, grouped changelog / release-notes entry, user-invoked and never rewriting history."
+    },
+    {
+      "name": "frontier-analysis-skills",
+      "source": "./plugins/frontier-analysis-skills",
+      "description": "A flat collection of five codebase-neutral skills for spending an expensive frontier reasoning model well — seam-conformance, layer-trace, contract-drift, boundary-judgment, and invariant-capture — each gathering evidence cheaply, then making one focused reasoning call, then capturing the verdict as a durable rule + test so you spend once and enforce forever. No agents; each skill auto-routes on its own triggers."
     }
   ]
 }

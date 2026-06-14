@@ -1,0 +1,23 @@
+{
+  "name": "frontier-analysis-skills",
+  "version": "0.1.0",
+  "description": "A flat collection of five frontier-model analysis skills — seam-conformance, layer-trace, contract-drift, boundary-judgment, and invariant-capture — for spending an expensive reasoning model well on any codebase. Each skill rides the same spine: gather cheap (no frontier tokens), think expensive (one focused reasoning call), capture durably (the verdict becomes a rule and a test, so you spend once and enforce forever). No agents, no shared docs — each skill stands alone and auto-routes on its own triggers.",
+  "author": {
+    "name": "Patrick Holloway",
+    "url": "https://github.com/marsman-io"
+    },
+  "homepage": "https://github.com/marsman-io/claude-marketplace",
+  "repository": "https://github.com/marsman-io/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "frontier-model",
+    "code-analysis",
+    "architecture",
+    "conformance",
+    "contract-drift",
+    "invariant",
+    "refactoring",
+    "reasoning",
+    "claude-code-skills"
+  ]
+}
