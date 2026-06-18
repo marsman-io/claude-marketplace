@@ -1,7 +1,7 @@
 {
   "name": "design-loop-methodology",
   "version": "0.2.0",
-  "description": "Phase-aware diagnostic skills that critique any design surface through five conceptual lenses (design loop, intent, constraint cascade, hierarchy budget, lifecycle). The design-loop orchestrator skill detects which lifecycle phase your design system is in (bootstrap / apply / audit / tweak / refactor) and composes the right leaf-skill chain — the same lens reads very differently per phase. Ships five canonical lens docs + 12 composable skills so the methodology travels with the plugin into any consumer project.",
+  "description": "Phase-aware diagnostic skills that critique any design surface through five conceptual lenses (design loop, intent, constraint cascade, hierarchy budget, lifecycle). The design-loop orchestrator skill detects which lifecycle phase your design system is in (bootstrap / apply / audit / tweak / refactor) and composes the right leaf-skill chain — the same lens reads very differently per phase. Ships five canonical lens docs + 12 composable skills, plus a design-system-audit agent that sweeps a whole design system for cross-screen drift in an isolated context, so the methodology travels with the plugin into any consumer project.",
   "author": {
     "name": "Patrick Holloway",
     "url": "https://github.com/marsman-io"

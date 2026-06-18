@@ -11,7 +11,7 @@
     {
       "name": "design-loop-methodology",
       "source": "./plugins/design-loop-methodology",
-      "description": "Phase-aware diagnostic skills that critique UI / design-system surfaces through five conceptual lenses (loop, intent, constraint, hierarchy, lifecycle). The design-loop orchestrator skill detects bootstrap/apply/audit/tweak/refactor and composes the right leaf-skill chain; single-lens requests auto-route to the leaf skills directly. Ships 12 composable skills, no agents."
+      "description": "Phase-aware diagnostic skills that critique UI / design-system surfaces through five conceptual lenses (loop, intent, constraint, hierarchy, lifecycle). The design-loop orchestrator skill detects bootstrap/apply/audit/tweak/refactor and composes the right leaf-skill chain; single-lens requests auto-route to the leaf skills directly. Ships 12 composable skills plus a design-system-audit agent that sweeps a whole design system for cross-screen drift in an isolated pass."
     },
     {
       "name": "design-craft-skills",
@@ -21,7 +21,7 @@
     {
       "name": "project-loop-methodology",
       "source": "./plugins/project-loop-methodology",
-      "description": "Phase-aware diagnostic skills that critique agentic product work through PM-derived lenses (loop, outcome altitude, constraint, priority budget, intent verification, lifecycle). The project-loop orchestrator skill detects charter/plan/execute/adjust/replan and composes the right leaf-skill chain; single-lens requests auto-route to the leaf skills directly. Ships 14 composable skills, no agents — for indie product builders checking whether agent-built work matches intent."
+      "description": "Phase-aware diagnostic skills that critique agentic product work through PM-derived lenses (loop, outcome altitude, constraint, priority budget, intent verification, lifecycle). The project-loop orchestrator skill detects charter/plan/execute/adjust/replan and composes the right leaf-skill chain; single-lens requests auto-route to the leaf skills directly. Ships 14 composable skills plus a project-work-audit agent that sweeps a whole workstream for cross-feature drift in an isolated pass — for indie product builders checking whether agent-built work matches intent."
     },
     {
       "name": "meta-prompt-skills",

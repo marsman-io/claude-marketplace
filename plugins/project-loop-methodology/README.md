@@ -14,10 +14,18 @@ must not require them or infer an institutional operating system.
 
 ## What's new
 
-This plugin is now **all skills, no agents**. The `project-loop` orchestrator
-skill detects the phase (charter / plan / execute / adjust / replan) and
-composes the right leaf-skill chain. Single-lens requests auto-route straight
-to the matching leaf skills.
+This plugin is now **skills-first**. The `project-loop` orchestrator skill
+detects the phase (charter / plan / execute / adjust / replan) and composes
+the right leaf-skill chain. Single-lens requests auto-route straight to the
+matching leaf skills.
+
+The one agent in the plugin is `project-work-audit` — a whole-workstream,
+cross-feature drift sweep. An agent earns its place here precisely because
+it's multi-target: it reads many features / issues / diffs and runs the three
+drift-audit skills in an *isolated* context, so the heavy survey never floods
+your main thread and only the synthesized root cause comes back. Your main
+loop can run several concurrently. It's the multi-target counterpart to the
+single-feature leaf skills — not a router over them.
 
 ## The orchestrator + the four lenses
 
@@ -69,6 +77,8 @@ via `${CLAUDE_PLUGIN_ROOT}/docs/`.
 
 ```
 .claude-plugin/plugin.json
+agents/
+  project-work-audit.md              # isolated whole-workstream drift sweep
 skills/
   project-loop/SKILL.md              # the phase-routing orchestrator
   project-phase-detect/SKILL.md
