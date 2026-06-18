@@ -15,7 +15,7 @@ A frontier model is the most expensive tool in the box, so every skill here
 spends it the same disciplined way:
 
 1. **Gather cheap** — collect the evidence with ordinary tools (grep, reads,
-   greps, file walks). No frontier tokens are burned framing the question.
+   file walks). No frontier tokens are burned framing the question.
 2. **Think expensive** — make *one* focused reasoning call against the gathered
    evidence. The expensive model judges; it does not go hunting.
 3. **Capture durably** — the verdict is written down as a durable artifact: a
@@ -26,11 +26,11 @@ spends it the same disciplined way:
 
 | Skill | Does | When to reach for it |
 |---|---|---|
-| `seam-conformance` | Gather the call sites at an architectural seam, then make one frontier call judging whether they conform — and freeze the verdict as a rule + test. | "does this code respect the boundary", "check seam conformance", "are these call sites following the pattern" |
-| `layer-trace` | Walk a request/value across layers cheaply, then spend one frontier call deciding where a layer's responsibility leaks — captured as an enforceable rule. | "trace this through the layers", "where does this responsibility leak", "is this logic in the wrong layer" |
-| `contract-drift` | Diff a contract (interface, schema, API shape) against its consumers cheaply, then make one frontier call to judge real drift vs noise, and pin the result as a test. | "has this contract drifted", "do callers still match this interface", "check for schema/API drift" |
-| `boundary-judgment` | Assemble the evidence on a hard design boundary call, then spend one frontier call on the judgment that actually needs reasoning — and record the decision durably. | "is this the right boundary", "should this live here or there", "make the hard call on this split" |
-| `invariant-capture` | Surface candidate invariants cheaply, then make one frontier call to confirm the ones that truly hold, and turn each into a test that enforces it forever. | "what invariants hold here", "capture this invariant as a test", "lock in this guarantee" |
+| `seam-conformance` | Gather the implementations behind one interface, then make one frontier call judging whether they *behave* the same — error semantics, ordering, partial-failure, idempotency — not just typecheck the same. Freezes the verdict as a conformance table + test. | "do these implementations actually agree", "behavioral conformance across implementations", "one throws and another returns null", "conformance table for these adapters" |
+| `layer-trace` | Trace one operation end-to-end across layers cheaply, then spend one frontier call finding where its error gets swallowed, re-typed vaguer, or loses its root cause at a hop. Bounded to a single operation so the whole chain fits context. | "works but the error is useless", "the failure loses its root cause crossing boundaries", "why is this error so vague by the time it surfaces", "trace where this operation drops its cause" |
+| `contract-drift` | Diff an HTTP boundary against its schema source of truth (Zod / JSON Schema / OpenAPI / protobuf) cheaply, then make one frontier call to find routes that hand-roll a shape, cast loosely, or return undeclared fields — and producer/consumer pairs that silently disagree. Pins the result as a test. | "where did this contract drift", "does this route match the schema", "find boundaries that bypass validation", "which consumers diverged after the contract change" |
+| `boundary-judgment` | Assemble the evidence on whether the boundary between two specific modules sits in the right place, then spend one frontier call on the judgment a grep can't make — and produces an argued verdict plus the smallest fix, not a rewrite. | "is this boundary in the right place", "should I split/merge these two modules", "this dependency points the wrong way", "which module should own X" |
+| `invariant-capture` | Surface the unstated invariant a subsystem silently relies on cheaply, then make one frontier call to confirm it truly holds — and bank it as a one-line rule plus a characterization test that fails if it's violated. The "spend once, enforce forever" capture move. | "what is this code silently assuming", "capture the unwritten invariant", "bank what we just learned into a rule and a test", "what load-bearing assumption has no test" |
 
 ## Layout
 
