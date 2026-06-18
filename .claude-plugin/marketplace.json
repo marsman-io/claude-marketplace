@@ -47,6 +47,11 @@
       "name": "dx-evaluation-skills",
       "source": "./plugins/dx-evaluation-skills",
       "description": "Eleven codebase-neutral, read-only skills for evaluating the developer experience of a multi-surface tool — task-analysis, cognitive-walkthrough, heuristic-evaluation (Nielsen's 10 + a DX supplement), golden-path, the flagship failure-state-matrix, experience-principles, and the per-surface conformance audits cli-conformance, api-error-model-audit, sdk-ergonomics, mcp-server-ux, and installer-upgrade-audit. Each diagnoses and emits a structured artifact — you intervene. Built on the conviction that for dev tools failure UX outweighs happy-path and agents are first-class users. No agents; each skill auto-routes on its own triggers. Pairs with experience-mapping-skills: map first, then evaluate."
+    },
+    {
+      "name": "developer-docs-skills",
+      "source": "./plugins/developer-docs-skills",
+      "description": "Ten codebase-neutral skills for writing and auditing the documentation of a multi-surface developer tool (CLI, SDK, REST API, MCP server, dashboard, installer, docs), built on Diátaxis — every page is one of tutorial / how-to / reference / explanation and mixing modes is the primary documentation failure. Ships the flagship docs-diataxis-audit (classify every page, flag mode-mixing, find missing quadrants), four generative mode-builders quickstart-builder (install->first-call with a time-to-first-success target), tutorial-scaffold (learning-oriented), how-to-recipe (task-oriented), and explanation-doc (understanding-oriented), reference-from-spec (machine-generated reference from an OpenAPI spec / --help dump / type signatures), and the read-only critics readme-audit (standard-readme + Make a README), doc-surface-drift (docs vs the actual surfaces, partly machine-checkable), style-conformance (Google dev-docs style guide), and code-sample-audit (runnable, copy-pasteable, idempotent samples). Grounded in Diátaxis, the Google style guide, Write the Docs, and standard-readme. No agents; each skill auto-routes on its own triggers. Completes the trio with experience-mapping-skills and dx-evaluation-skills: map, evaluate, then document."
     }
   ]
 }
