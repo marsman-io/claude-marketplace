@@ -37,6 +37,16 @@
       "name": "frontier-analysis-skills",
       "source": "./plugins/frontier-analysis-skills",
       "description": "A flat collection of five codebase-neutral skills for spending an expensive frontier reasoning model well — seam-conformance, layer-trace, contract-drift, boundary-judgment, and invariant-capture — each gathering evidence cheaply, then making one focused reasoning call, then capturing the verdict as a durable rule + test so you spend once and enforce forever. No agents; each skill auto-routes on its own triggers."
+    },
+    {
+      "name": "experience-mapping-skills",
+      "source": "./plugins/experience-mapping-skills",
+      "description": "Ten codebase-neutral, generative skills for mapping the experience of a multi-surface developer tool (CLI, SDK, REST API, MCP server, dashboard, installer, docs) — experience-map, journey-map, service-blueprint, current-future-state, jtbd-map, touchpoint-inventory, ecosystem-map, concept-terminology-audit, surface-information-architecture, and cross-surface-synthesis. Each produces one structured artifact (map / matrix / inventory) grounded in an established UX method and adapted for dev tools. No agents; each skill stands alone and auto-routes on its own triggers. Pairs with dx-evaluation-skills: map first, then evaluate."
+    },
+    {
+      "name": "dx-evaluation-skills",
+      "source": "./plugins/dx-evaluation-skills",
+      "description": "Eleven codebase-neutral, read-only skills for evaluating the developer experience of a multi-surface tool — task-analysis, cognitive-walkthrough, heuristic-evaluation (Nielsen's 10 + a DX supplement), golden-path, the flagship failure-state-matrix, experience-principles, and the per-surface conformance audits cli-conformance, api-error-model-audit, sdk-ergonomics, mcp-server-ux, and installer-upgrade-audit. Each diagnoses and emits a structured artifact — you intervene. Built on the conviction that for dev tools failure UX outweighs happy-path and agents are first-class users. No agents; each skill auto-routes on its own triggers. Pairs with experience-mapping-skills: map first, then evaluate."
     }
   ]
 }

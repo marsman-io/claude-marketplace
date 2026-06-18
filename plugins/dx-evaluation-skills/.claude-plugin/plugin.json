@@ -1,0 +1,25 @@
+{
+  "name": "dx-evaluation-skills",
+  "version": "0.1.0",
+  "description": "A flat collection of eleven codebase-neutral, READ-ONLY skills for evaluating the developer experience of a multi-surface tool (CLI, SDK, REST API, MCP server, desktop/Electron dashboard, installer/upgrade, docs). Each diagnoses and emits a structured artifact — you intervene. Ships task-analysis (HTA + DX metrics), cognitive-walkthrough (4-question learnability, with an agent-as-user variant for MCP), heuristic-evaluation (Nielsen's 10 + a DX heuristic supplement), golden-path (the install->auth->first-call->verify route, headless & idempotent), failure-state-matrix (the flagship error/recovery audit), experience-principles (a testable DX contract), and the per-surface conformance audits cli-conformance (clig.dev), api-error-model-audit (RFC 9457 / pagination / versioning / idempotency), sdk-ergonomics (Azure SDK guidelines), mcp-server-ux (tools as an LLM's UI), and installer-upgrade-audit (install/upgrade/rollback state machine). For dev tools, failure UX outweighs happy-path and agents are first-class users. No agents, no shared docs — each skill stands alone and auto-routes on its own triggers. Pairs with experience-mapping-skills: map first, then evaluate.",
+  "author": {
+    "name": "Patrick Holloway",
+    "url": "https://github.com/marsman-io"
+  },
+  "homepage": "https://github.com/marsman-io/claude-marketplace",
+  "repository": "https://github.com/marsman-io/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "developer-experience",
+    "dx",
+    "usability",
+    "heuristic-evaluation",
+    "cognitive-walkthrough",
+    "failure-states",
+    "cli",
+    "rest-api",
+    "mcp",
+    "sdk",
+    "claude-code-skills"
+  ]
+}
