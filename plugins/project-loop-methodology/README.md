@@ -1,6 +1,6 @@
 # project-loop-methodology
 
-Five phase-aware diagnostic agents that critique agentic product work
+Phase-aware diagnostic skills that critique agentic product work
 through six PM-derived lenses. Read-only critics, not implementers —
 each produces a structured finding the builder can act on.
 
@@ -9,24 +9,35 @@ delegates work to agents and then needs product judgment: did the thing
 the agents built match the intent? The PM skillset still matters, but the
 default artifacts are prompts, issues, diffs, screenshots, tests, logs,
 demos, and acceptance notes. Linear issues, OKRs, stakeholders, roadmaps,
-and status reports are useful only when they actually exist; the agents
+and status reports are useful only when they actually exist; the skills
 must not require them or infer an institutional operating system.
 
-## Agents (workflows)
+## What's new
 
-| Agent | Lens | Phase-aware behavior |
+This plugin is now **all skills, no agents**. The `project-loop` orchestrator
+skill detects the phase (charter / plan / execute / adjust / replan) and
+composes the right leaf-skill chain. Single-lens requests auto-route straight
+to the matching leaf skills.
+
+## The orchestrator + the four lenses
+
+`project-loop` is the meta-skill: it walks perception → abstraction → action
+→ feedback, composing the lens skills the phase needs. To run a single lens
+end-to-end, jump straight to its leaf skills:
+
+| Lens | Grounding doc | Leaf skills (phase-aware) |
 |---|---|---|
-| `project-loop` | the meta-loop | walks perception/abstraction/action/feedback, composing the lens skills the phase needs |
-| `intent-verify` | `Intent verification.md` | author acceptance criteria before a build (charter/plan), check built-vs-intent for gaps + drift (execute/adjust), re-derive + re-check (replan) |
-| `outcome-altitude` | `Intent as a PM Lens.md` | gap-check (charter/plan), drift-audit (execute/replan), before/after (adjust) |
-| `project-cascade` | `Constraint-based project management.md` | constraint-build (charter/plan), constraint-audit (execute/replan), impact-trace (adjust) |
-| `priority-budget` | `Priority budget.md` | walk + squint (single initiative), audit (cross-feature / cross-issue drift) |
+| intent verification | `Intent verification.md` | `acceptance-criteria-build` (before a build), `built-intent-check` (gaps + drift after) |
+| outcome altitude | `Intent as a PM Lens.md` | `outcome-altitude-name` + `outcome-altitude-gap` (charter/plan), `outcome-drift-audit` (execute/replan) |
+| constraint | `Constraint-based project management.md` | `project-constraint-build` (charter/plan), `project-constraint-audit` (execute/replan), `project-impact-trace` (adjust) |
+| priority | `Priority budget.md` | `project-surface-type` + `priority-budget-walk` + `priority-squint-test` (single initiative), `priority-budget-audit` (cross-feature drift) |
 
 ## Skills (procedures)
 
 | Skill | When invoked |
 |---|---|
-| `project-phase-detect` | First in every agent — detects charter / plan / execute / adjust / replan |
+| `project-loop` | The orchestrator — phase-detects, then composes the lens skills below |
+| `project-phase-detect` | First in the orchestrator — detects charter / plan / execute / adjust / replan |
 | `acceptance-criteria-build` | Author behavioral, riskiest-first acceptance criteria before delegating a task |
 | `built-intent-check` | Check a built artifact against intent — gaps (missing) + drift (unasked-for) |
 | `project-surface-type` | Name discovery / delivery / operations mode before walking the budget |
@@ -51,20 +62,15 @@ must not require them or infer an institutional operating system.
 | `Priority budget.md` | finite builder attention / agent-cycle budget, 5 mechanisms, squint test |
 | `Project lifecycle.md` | charter / plan / execute / adjust / replan — and how each lens reads per phase |
 
-All six travel with the plugin under `docs/`, referenced by agents and
-skills via `${CLAUDE_PLUGIN_ROOT}/docs/`.
+All six travel with the plugin under `docs/`, referenced by the skills
+via `${CLAUDE_PLUGIN_ROOT}/docs/`.
 
 ## Layout
 
 ```
 .claude-plugin/plugin.json
-agents/
-  project-loop.md
-  intent-verify.md
-  outcome-altitude.md
-  project-cascade.md
-  priority-budget.md
 skills/
+  project-loop/SKILL.md              # the phase-routing orchestrator
   project-phase-detect/SKILL.md
   acceptance-criteria-build/SKILL.md
   built-intent-check/SKILL.md
@@ -80,10 +86,10 @@ docs/
 README.md
 ```
 
-## Conventions all five agents enforce
+## Conventions all the skills enforce
 
-- **Read-only.** No `Edit`/`Write` tools. They diagnose; you intervene.
-- **Phase-aware.** Every agent runs `project-phase-detect` first, then branches.
+- **Read-only.** They diagnose; you intervene.
+- **Phase-aware.** The orchestrator runs `project-phase-detect` first, then branches.
 - **Doc-grounded.** Skills read their lens doc before executing.
 - **Artifact-cited.** No finding without an artifact reference (prompt, issue, diff, screenshot, test output, demo note, trace, or optional planning artifact).
 - **Institution-light.** Do not assume Linear, Jira, OKRs, stakeholders, roadmaps, analytics, or a large user base. Use them only when the workspace provides them.
@@ -93,7 +99,7 @@ README.md
 
 ## Override the methodology in your workspace
 
-The agents prefer a consumer workspace's *own* copy of any lens doc when
+The skills prefer a consumer workspace's *own* copy of any lens doc when
 one exists at the workspace root. Drop a tuned `Project Loop.md` (or any
 of the five) at your workspace root, and the matching skill will use
 yours instead of the plugin's copy. Falls back to the plugin's docs

@@ -5,18 +5,23 @@
     "url": "https://github.com/marsman-io"
   },
   "metadata": {
-    "description": "Claude Code plugins published by marsman-io. A family of phase-aware diagnostic-agent plugins — each ships read-only agents that critique a domain (design, project management, …) through grounded conceptual lenses + a lifecycle taxonomy — plus standalone skill collections."
+    "description": "Claude Code plugins published by marsman-io. A family of phase-aware diagnostic-skill plugins — each ships read-only skills that critique a domain (design, project management, …) through grounded conceptual lenses + a lifecycle taxonomy, with an orchestrator skill that detects phase and composes the right leaf-skill chain — plus standalone skill collections."
   },
   "plugins": [
     {
       "name": "design-loop-methodology",
       "source": "./plugins/design-loop-methodology",
-      "description": "Four phase-aware diagnostic agents (design-loop, intent-lens, constraint-cascade, hierarchy-budget) that critique UI / design-system surfaces through five conceptual lenses (loop, intent, constraint, hierarchy, lifecycle). Detects bootstrap/apply/audit/tweak/refactor and composes the right skill chain. Ships 11 composable skills."
+      "description": "Phase-aware diagnostic skills that critique UI / design-system surfaces through five conceptual lenses (loop, intent, constraint, hierarchy, lifecycle). The design-loop orchestrator skill detects bootstrap/apply/audit/tweak/refactor and composes the right leaf-skill chain; single-lens requests auto-route to the leaf skills directly. Ships 12 composable skills, no agents."
+    },
+    {
+      "name": "design-craft-skills",
+      "source": "./plugins/design-craft-skills",
+      "description": "Two generative design-craft skills for building and polishing real interfaces — ui-designer (visual craft: spacing, color, typography, design tokens, component systems, pixel-perfect polish) and ux-designer (experience strategy: user flows, information architecture, interaction design, usability, the psychology behind decisions). Each ships progressive-disclosure reference files and auto-routes on its own triggers; the two hand off (flow → visual). Generative, not diagnostic — the build-and-refine counterpart to design-loop-methodology's read-only critique."
     },
     {
       "name": "project-loop-methodology",
       "source": "./plugins/project-loop-methodology",
-      "description": "Four phase-aware diagnostic agents (project-loop, outcome-altitude, project-cascade, priority-budget) that critique agentic product work through PM-derived lenses (loop, outcome altitude, constraint, priority budget, lifecycle). Detects charter/plan/execute/adjust/replan and composes the right skill chain for indie product builders checking whether agent-built work matches intent."
+      "description": "Phase-aware diagnostic skills that critique agentic product work through PM-derived lenses (loop, outcome altitude, constraint, priority budget, intent verification, lifecycle). The project-loop orchestrator skill detects charter/plan/execute/adjust/replan and composes the right leaf-skill chain; single-lens requests auto-route to the leaf skills directly. Ships 14 composable skills, no agents — for indie product builders checking whether agent-built work matches intent."
     },
     {
       "name": "meta-prompt-skills",
@@ -26,7 +31,7 @@
     {
       "name": "indie-founder-lenses",
       "source": "./plugins/indie-founder-lenses",
-      "description": "Four phase-aware, read-only diagnostic lenses for the surfaces a solo founder lives on — launch-readiness-lens, founder-focus-budget, pricing-page-lens, and conversion-intent-lens — each detecting its own phase and critiquing one founder surface (launch readiness, founder focus, pricing, landing-page conversion) against a cited artifact. Not a loop and not a methodology: no orchestrator, no shared lifecycle, no persona — independent critics that accept in-repo or pasted/external artifacts."
+      "description": "Four phase-aware, read-only diagnostic lens skills for the surfaces a solo founder lives on — launch-readiness-lens, founder-focus-budget, pricing-page-lens, and conversion-intent-lens — each detecting its own phase and critiquing one founder surface (launch readiness, founder focus, pricing, landing-page conversion) against a cited artifact. Not a loop and not a methodology: no orchestrator, no shared lifecycle, no persona — independent lens skills (each composing its own leaf skills) that accept in-repo or pasted/external artifacts. No agents."
     },
     {
       "name": "release-flow-skills",

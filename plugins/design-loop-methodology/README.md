@@ -1,34 +1,40 @@
 # design-loop-methodology
 
-Four phase-aware diagnostic agents that critique any design surface through
+Phase-aware diagnostic skills that critique any design surface through
 five conceptual lenses. Read-only critics, not implementers — each produces
 a structured finding you (or your main loop) react to.
 
 ## What's new in 0.2.0
 
-The four agents are now **workflow orchestrators**: each detects which
-lifecycle phase your design system is in (bootstrap / apply / audit /
-tweak / refactor) and composes the right skill chain for that phase. The
-diagnostic procedures live in small composable skills under `skills/`.
+This plugin is now **all skills, no agents**. The `design-loop` orchestrator
+skill detects which lifecycle phase your design system is in (bootstrap /
+apply / audit / tweak / refactor) and composes the right leaf-skill chain
+for that phase. Single-lens requests auto-route straight to the matching
+leaf skills — no orchestrator round-trip needed.
 
-The same lens reads very differently at different phases. `constraint-cascade`
-in bootstrap = *model the cascade*. In tweak = *trace blast radius*. The
-phase-detect-and-branch pattern is now explicit.
+The same lens reads very differently at different phases. The constraint
+lens in bootstrap = *model the cascade* (`constraint-graph-build`); in tweak
+= *trace blast radius* (`cascade-impact-trace`). The phase-detect-and-branch
+pattern is explicit in the orchestrator skill's abstraction table.
 
-## Agents (workflows)
+## The orchestrator + the three lenses
 
-| Agent | Lens | Phase-aware behavior |
+`design-loop` is the meta-skill: it walks perception → abstraction → action
+→ feedback, composing the lens skills the phase needs. To run a single lens
+end-to-end, jump straight to its leaf skills:
+
+| Lens | Grounding doc | Leaf skills (phase-aware) |
 |---|---|---|
-| `design-loop` | the meta-loop | walks perception/abstraction/action/feedback, composing the lens skills the phase needs |
-| `intent-lens` | `Intent as a Design Lens.md` | gap-check (bootstrap/apply), drift-audit (audit), before/after (tweak) |
-| `constraint-cascade` | `Constraint-based design.md` | graph-build (bootstrap), graph-audit (audit/refactor), impact-trace (tweak) |
-| `hierarchy-budget` | `How to arrive at hierarchy clarity.md` | walk + squint (single screen), audit (cross-screen drift) |
+| intent | `Intent as a Design Lens.md` | `altitude-name` + `intent-altitude-gap` (bootstrap/apply), `intent-drift-audit` (audit) |
+| constraint | `Constraint-based design.md` | `constraint-graph-build` (bootstrap), `constraint-graph-audit` (audit/refactor), `cascade-impact-trace` (tweak) |
+| hierarchy | `How to arrive at hierarchy clarity.md` | `surface-type-name` + `differentiation-budget-walk` + `squint-test` (single screen), `differentiation-budget-audit` (cross-screen drift) |
 
 ## Skills (procedures)
 
 | Skill | When invoked |
 |---|---|
-| `design-system-phase` | First in every agent — detects bootstrap/apply/audit/tweak/refactor |
+| `design-loop` | The orchestrator — phase-detects, then composes the lens skills below |
+| `design-system-phase` | First in the orchestrator — detects bootstrap/apply/audit/tweak/refactor |
 | `surface-type-name` | Name reading/operating/monitoring before walking the budget |
 | `differentiation-budget-walk` | Walk the 5 mechanisms on one screen |
 | `squint-test` | Validate that the spending is actually working |
@@ -50,19 +56,15 @@ phase-detect-and-branch pattern is now explicit.
 | `How to arrive at hierarchy clarity.md` | the differentiation budget, 5 mechanisms, squint test |
 | `Design system lifecycle.md` | bootstrap / apply / audit / tweak / refactor — and how each lens reads per phase |
 
-All five travel with the plugin under `docs/`, referenced by agents and
-skills via `${CLAUDE_PLUGIN_ROOT}/docs/`.
+All five travel with the plugin under `docs/`, referenced by the skills
+via `${CLAUDE_PLUGIN_ROOT}/docs/`.
 
 ## Layout
 
 ```
 .claude-plugin/plugin.json
-agents/                              # workflow orchestrators
-  design-loop.md
-  intent-lens.md
-  constraint-cascade.md
-  hierarchy-budget.md
-skills/                              # composable procedures
+skills/                              # orchestrator + composable procedures
+  design-loop/SKILL.md               # the phase-routing orchestrator
   design-system-phase/SKILL.md
   surface-type-name/SKILL.md
   ...
@@ -75,10 +77,10 @@ docs/                                # five conceptual lens docs
 README.md
 ```
 
-## Conventions all four agents enforce
+## Conventions all the skills enforce
 
-- **Read-only.** No `Edit`/`Write` tools. They diagnose; you implement.
-- **Phase-aware.** Every agent runs `design-system-phase` first, then branches.
+- **Read-only.** They diagnose; you implement.
+- **Phase-aware.** The orchestrator runs `design-system-phase` first, then branches.
 - **Doc-grounded.** Skills read their lens doc before executing.
 - **File-cited.** No finding without a path + line number.
 - **Single target.** One screen, feature, or subsystem per invocation.
@@ -87,7 +89,7 @@ README.md
 
 ## Override the methodology in your project
 
-The agents prefer a consumer project's *own* copy of any lens doc when one
+The skills prefer a consumer project's *own* copy of any lens doc when one
 exists at the project root. Drop a tuned `Design Loop.md` (or any of the
 five) at your project root, and the matching skill will use yours instead
 of the plugin's copy. Falls back to the plugin's docs otherwise.
@@ -96,6 +98,6 @@ of the plugin's copy. Falls back to the plugin's docs otherwise.
 
 The five conceptual `.md` files in this plugin's `docs/` directory are the
 canonical, install-ready copies. Edit them in place to evolve the
-methodology — every skill and agent reads
+methodology — every skill reads
 `${CLAUDE_PLUGIN_ROOT}/docs/<lens>.md` at invocation time, so changes take
 effect on the next plugin reload.
