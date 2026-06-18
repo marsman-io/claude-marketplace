@@ -1,16 +1,16 @@
 # indie-founder-lenses
 
-Four phase-aware diagnostic lenses for the surfaces a solo founder lives
-on — launch readiness, pricing, landing-page conversion, and founder
+Four phase-aware diagnostic lens skills for the surfaces a solo founder
+lives on — launch readiness, pricing, landing-page conversion, and founder
 focus. Read-only critics, not implementers — each detects its own phase
 and produces a structured finding you can act on.
 
 This is **not a loop and not a methodology.** There is no orchestrator,
-no shared founder lifecycle, and no founder persona. Each lens is
+no shared founder lifecycle, and no founder persona. Each lens skill is
 independent: it owns its own phase axis, reads its own grounding doc,
-fires on its own triggers, and never assumes another lens has run. The
-lenses share only a small surface-vocabulary doc (`Founder surfaces.md`)
-so they cross-reference the same terms.
+composes its own leaf skills, fires on its own triggers, and never assumes
+another lens has run. The lens skills share only a small surface-vocabulary
+doc (`Founder surfaces.md`) so they cross-reference the same terms.
 
 This plugin is tuned for a solo founder / vibe-coder who ships their own
 product. The surfaces it critiques — a landing page, a pricing page, an
@@ -20,13 +20,13 @@ therefore accepts a pasted artifact (markup, a URL, a pasted backlog or
 roadmap) as the target, and treats "couldn't find the surface in-repo"
 as a normal outcome, not an error.
 
-Agents are auto-delegated probabilistically from their `description`, so
-the matching lens often fires on the phrasings below — but auto-routing
-is not guaranteed. You can always invoke a lens explicitly.
+Skills auto-activate probabilistically from their `description`, so the
+matching lens skill often fires on the phrasings below — but auto-routing
+is not guaranteed. You can always invoke a lens skill explicitly.
 
-## Agents (lenses)
+## Lens skills
 
-| Agent | Critiques | Phase axis |
+| Lens skill | Critiques | Phase axis |
 |---|---|---|
 | `launch-readiness-lens` | presence + cross-surface coherence before/around a launch | pre-launch / soft-launch / launch / post-launch |
 | `founder-focus-budget` | a founder's backlog / commitments as a finite attention budget | scoping / committed / in-flight / reprioritizing / pivoting |
@@ -71,8 +71,8 @@ ${CLAUDE_PLUGIN_ROOT}/docs/Founder surfaces.md
 
 ## Conventions all lenses enforce
 
-- **Read-only.** No `Edit`/`Write` tools. They diagnose; you intervene. Each agent body also states it in prose, because `Bash` can write — the read-only promise is held by discipline.
-- **Phase-aware, per-lens.** Every lens detects its *own* phase first, then branches. There is no shared lifecycle to interpret.
+- **Read-only.** They diagnose; you intervene. As skills they run in the main thread and don't carry their own tool restrictions, so each lens skill states the read-only promise in prose and holds it by discipline.
+- **Phase-aware, per-lens.** Every lens skill detects its *own* phase first, then branches. There is no shared lifecycle to interpret.
 - **Doc-grounded.** Each lens reads its grounding doc before executing.
 - **Artifact-cited.** No finding without an artifact reference (file:line, a pasted block, or a URL).
 - **Accepts external / pasted artifacts.** Founder surfaces often live outside the repo. A pasted page, a URL, or a pasted backlog is a first-class target; "not in-repo" is a normal path, not an error.
@@ -93,11 +93,6 @@ lens will use yours instead of the plugin's. Falls back to the plugin's
 ```
 .claude-plugin/plugin.json
 README.md
-agents/
-  launch-readiness-lens.md
-  founder-focus-budget.md
-  pricing-page-lens.md
-  conversion-intent-lens.md
 docs/
   Founder surfaces.md
   Launch readiness.md
@@ -105,7 +100,11 @@ docs/
   Pricing as a Decision Surface.md
   Intent as a Conversion Lens.md
 skills/
+  launch-readiness-lens/SKILL.md      # lens skill (composes the leaves below)
   launch-readiness-walk/SKILL.md
+  conversion-intent-lens/SKILL.md      # lens skill
+  pricing-page-lens/SKILL.md           # lens skill
+  founder-focus-budget/SKILL.md        # lens skill
   founder-work-mode/SKILL.md
   founder-focus-walk/SKILL.md
   founder-focus-squint/SKILL.md

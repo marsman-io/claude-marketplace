@@ -90,8 +90,8 @@ re-pin a value that became a default, audit the bypasses and re-route.
 
 ## How each lens reads per phase
 
-The lenses don't change; the procedures do. The same `constraint-cascade`
-lens runs `graph-build` in bootstrap and `impact-trace` in tweak.
+The lenses don't change; the procedures do. The same **constraint** lens
+runs `constraint-graph-build` in bootstrap and `cascade-impact-trace` in tweak.
 
 | Lens         | Bootstrap                        | Apply                             | Audit                             | Tweak                             | Refactor                          |
 |--------------|----------------------------------|-----------------------------------|-----------------------------------|-----------------------------------|-----------------------------------|

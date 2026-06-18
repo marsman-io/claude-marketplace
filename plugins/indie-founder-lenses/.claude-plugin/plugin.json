@@ -1,7 +1,7 @@
 {
   "name": "indie-founder-lenses",
   "version": "0.1.0",
-  "description": "Phase-aware, read-only diagnostic lenses for the surfaces a solo founder lives on — launch readiness, pricing, landing-page conversion, and founder focus. Each lens is an independent critic that detects its own phase and reports a structured finding against an artifact you can act on. This is NOT a loop and NOT a methodology: there is no orchestrator, no shared lifecycle, and no founder persona — the lenses share only a small surface-vocabulary doc and fire (or are invoked) on their own.",
+  "description": "Phase-aware, read-only diagnostic skills for the surfaces a solo founder lives on — launch readiness, pricing, landing-page conversion, and founder focus. Each lens skill is an independent critic that detects its own phase and reports a structured finding against an artifact you can act on. This is NOT a loop and NOT a methodology: there is no orchestrator, no shared lifecycle, and no founder persona — the lens skills share only a small surface-vocabulary doc and auto-route (or are invoked) on their own.",
   "author": {
     "name": "Patrick Holloway",
     "url": "https://github.com/marsman-io"
@@ -17,7 +17,7 @@
     "conversion",
     "landing-page",
     "founder-focus",
-    "diagnostic-agents",
+    "diagnostic-skills",
     "phase-aware",
     "read-only",
     "vibe-coding"

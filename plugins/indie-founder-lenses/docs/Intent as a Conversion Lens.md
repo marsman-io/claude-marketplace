@@ -8,7 +8,7 @@ product's feature list, or the founder's pride, or whatever the page
 builder dropped in by default — instead of around the visitor's intent.
 
 This doc adapts the *intent-altitude ladder* from design-loop-methodology's
-`intent-lens` (see `Intent as a Design Lens.md` in that plugin) and
+**intent lens** (see `Intent as a Design Lens.md` in that plugin) and
 retargets it from app screens to **landing and conversion surfaces**. The
 parent lens asks "what altitude is this screen organized at, and does that
 match what the user opened it to do?" The same question is even sharper on

@@ -16,8 +16,8 @@ That registers this repo as a source of plugins; nothing is installed yet.
 
 | Plugin | Status | Description |
 |---|---|---|
-| [`design-loop-methodology`](./plugins/design-loop-methodology) | v0.2.0 | Four phase-aware diagnostic agents (`design-loop`, `intent-lens`, `constraint-cascade`, `hierarchy-budget`) that critique UI / design surfaces through five conceptual lenses + a lifecycle taxonomy (bootstrap / apply / audit / tweak / refactor). 11 composable skills. |
-| [`project-loop-methodology`](./plugins/project-loop-methodology) | v0.1.0 | Four phase-aware diagnostic agents (`project-loop`, `outcome-altitude`, `project-cascade`, `priority-budget`) that critique agentic product work through PM-derived lenses + a lifecycle taxonomy (charter / plan / execute / adjust / replan). Tuned for indie product builders checking whether agent-built work matches intent. 11 composable skills. |
+| [`design-loop-methodology`](./plugins/design-loop-methodology) | v0.2.0 | Phase-aware diagnostic skills that critique UI / design surfaces through five conceptual lenses + a lifecycle taxonomy (bootstrap / apply / audit / tweak / refactor). The `design-loop` orchestrator skill detects phase and composes the right leaf-skill chain; single-lens requests auto-route to the leaf skills. 12 composable skills, no agents. |
+| [`project-loop-methodology`](./plugins/project-loop-methodology) | v0.1.0 | Phase-aware diagnostic skills that critique agentic product work through PM-derived lenses + a lifecycle taxonomy (charter / plan / execute / adjust / replan). The `project-loop` orchestrator skill detects phase and composes the right leaf-skill chain. Tuned for indie product builders checking whether agent-built work matches intent. 14 composable skills, no agents. |
 | [`meta-prompt-skills`](./plugins/meta-prompt-skills) | v0.1.0 | A flat collection of seven standalone meta-prompt skills: `humanizer`, `video-distill`, `sota-scan`, `session-mine`, `clarify-deep`, `book-to-skill`, `prompt-improver` (auto / interactive mode). No agents — each skill auto-routes on its own triggers. Unrelated to the `*-loop-methodology` plugins; same marketplace only. |
 
 ### Install a plugin from the marketplace
@@ -28,11 +28,9 @@ That registers this repo as a source of plugins; nothing is installed yet.
 
 Then auto-routes on phrasings like *"audit the hierarchy of `Page.tsx`"*,
 *"run the design loop on the editor"*, *"what's the intent gap here?"*,
-*"map the cascade for this token system"*. Or invoke explicitly:
-
-```
-Agent({ subagent_type: "design-loop", prompt: "..." })
-```
+*"map the cascade for this token system"* — the `design-loop` orchestrator
+skill fires on full-loop requests, and single-lens phrasings auto-route
+straight to the matching leaf skill (e.g. `differentiation-budget-walk`).
 
 ## Layout
 
@@ -41,15 +39,15 @@ Agent({ subagent_type: "design-loop", prompt: "..." })
 plugins/
   design-loop-methodology/         # one plugin per subdirectory
     .claude-plugin/plugin.json
-    agents/                        # 4 diagnostic agents
-    docs/                          # 4 conceptual docs the agents reference
+    skills/                        # orchestrator skill + leaf skills
+    docs/                          # conceptual docs the skills reference
     README.md
 LICENSE                            # MIT
 ```
 
 Each plugin's directory is a self-contained Claude Code plugin —
 manifest-driven, auto-discovered, portable to any consumer project. Each
-agent references its grounding doc via `${CLAUDE_PLUGIN_ROOT}/docs/` so the
+skill references its grounding doc via `${CLAUDE_PLUGIN_ROOT}/docs/` so the
 plugin works as soon as it's installed, no extra setup.
 
 ## Contributing

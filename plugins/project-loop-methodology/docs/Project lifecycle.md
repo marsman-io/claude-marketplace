@@ -101,8 +101,8 @@ one user path, or replace an ambiguous prompt with a sharper one.
 
 ## How each lens reads per phase
 
-The lenses do not change; the procedures do. The same `project-cascade`
-lens runs `constraint-build` in Charter and `impact-trace` in Adjust.
+The lenses do not change; the procedures do. The same **constraint** lens
+runs `project-constraint-build` in Charter and `project-impact-trace` in Adjust.
 
 | Lens         | Charter                        | Plan                              | Execute                          | Adjust                            | Replan                            |
 |--------------|--------------------------------|-----------------------------------|----------------------------------|-----------------------------------|-----------------------------------|
