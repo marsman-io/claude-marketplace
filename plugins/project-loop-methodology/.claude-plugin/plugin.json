@@ -1,7 +1,7 @@
 {
   "name": "project-loop-methodology",
   "version": "0.2.0",
-  "description": "Phase-aware diagnostic skills that critique agentic product work through six PM-derived lenses (project loop, outcome altitude, project constraint cascade, attention priority budget, intent verification, project lifecycle). The project-loop orchestrator skill detects the phase and composes the right leaf-skill chain. Tuned for indie product builders / vibe-coders who delegate the build to agents and need to verify whether the built thing matches intent. The skills use prompts, issues, diffs, screenshots, tests, logs, demos, and acceptance criteria as first-class evidence; Linear, OKRs, stakeholders, roadmaps, and status reports are optional context only.",
+  "description": "Phase-aware diagnostic skills that critique agentic product work through six PM-derived lenses (project loop, outcome altitude, project constraint cascade, attention priority budget, intent verification, project lifecycle). The project-loop orchestrator skill detects the phase and composes the right leaf-skill chain, and a project-work-audit agent sweeps a whole workstream for cross-feature drift in an isolated context. Tuned for indie product builders / vibe-coders who delegate the build to agents and need to verify whether the built thing matches intent. The skills use prompts, issues, diffs, screenshots, tests, logs, demos, and acceptance criteria as first-class evidence; Linear, OKRs, stakeholders, roadmaps, and status reports are optional context only.",
   "author": {
     "name": "Patrick Holloway",
     "url": "https://github.com/marsman-io"

@@ -6,11 +6,19 @@ a structured finding you (or your main loop) react to.
 
 ## What's new in 0.2.0
 
-This plugin is now **all skills, no agents**. The `design-loop` orchestrator
-skill detects which lifecycle phase your design system is in (bootstrap /
-apply / audit / tweak / refactor) and composes the right leaf-skill chain
-for that phase. Single-lens requests auto-route straight to the matching
-leaf skills — no orchestrator round-trip needed.
+This plugin is now **skills-first**. The `design-loop` orchestrator skill
+detects which lifecycle phase your design system is in (bootstrap / apply /
+audit / tweak / refactor) and composes the right leaf-skill chain for that
+phase. Single-lens requests auto-route straight to the matching leaf skills
+— no orchestrator round-trip needed.
+
+The one agent in the plugin is `design-system-audit` — a whole-system,
+cross-screen drift sweep. An agent earns its place here precisely because
+it's multi-target: it reads many screens and runs the three drift-audit
+skills in an *isolated* context, so the heavy survey never floods your main
+thread and only the synthesized root cause comes back. Your main loop can
+run several concurrently (e.g. one per product area). It's the multi-target
+counterpart to the single-screen leaf skills — not a router over them.
 
 The same lens reads very differently at different phases. The constraint
 lens in bootstrap = *model the cascade* (`constraint-graph-build`); in tweak
@@ -63,6 +71,8 @@ via `${CLAUDE_PLUGIN_ROOT}/docs/`.
 
 ```
 .claude-plugin/plugin.json
+agents/
+  design-system-audit.md             # isolated whole-system drift sweep
 skills/                              # orchestrator + composable procedures
   design-loop/SKILL.md               # the phase-routing orchestrator
   design-system-phase/SKILL.md
