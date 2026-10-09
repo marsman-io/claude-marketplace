@@ -1,0 +1,23 @@
+{
+  "name": "mission-antislop",
+  "version": "0.1.0",
+  "description": "Anti-slop skills for long-horizon agent missions — work an agent runs unattended from a brief and reports on in a completion file. Grounded in a review record of ~350 adversarial verdicts, where the common failure was not unfinished work but evidence that looked like proof: overclaiming prose, tests a wrong implementation passes, green figures from the wrong commit, sweeps whose scope made them pass, fixes that closed the line but not the class. Three skills cover the lifecycle: antislop-brief (before launch: 16 substance checks, including premise holds on base, every prescribed proof can fail, properties not mechanisms, invariants named), antislop-execution (during the run: on-disk scope ledger, mutations that kill a named wrong implementation, every figure tied to the head commit, class-not-line fixes, honest X of Y), and antislop-audit (before review: reconcile brief, report and diff row by row, rerun sweeps wider, check repair rounds for open same-class sites, label every check executed or static). Ships a deterministic stdlib-only slop scanner for diffs and completion reports, calibrated on real merged code and reports. Adapts taste-skill's LLM-laziness research. No agents.",
+  "author": {
+    "name": "Patrick Holloway",
+    "url": "https://github.com/marsman-io"
+  },
+  "homepage": "https://github.com/marsman-io/claude-marketplace",
+  "repository": "https://github.com/marsman-io/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "anti-slop",
+    "agent-missions",
+    "unattended-agents",
+    "long-horizon",
+    "completion-audit",
+    "scope-ledger",
+    "laziness",
+    "code-review",
+    "claude-code-skills"
+  ]
+}
