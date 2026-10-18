@@ -1,0 +1,5 @@
+# expect: item 2: mind-map: missing `branches`
+type: handout
+items:
+  - {type: kwl-chart}
+  - {type: mind-map, center: X}

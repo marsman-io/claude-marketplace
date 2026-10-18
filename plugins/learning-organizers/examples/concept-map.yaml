@@ -1,0 +1,22 @@
+# Concept map: concepts joined by linking phrases. Adapted from FHWA LearnersFirst, Figure 20.
+type: concept-map
+title: Post-tensioning tendon installation and grouting
+focus-question: How do the parts of a post-tensioning system relate?
+concepts:
+  - {id: pt, text: Post-tensioning tendon installation and grouting}
+  - {id: mat, text: Materials and components}
+  - {id: duct, text: Duct and tendon installation}
+  - {id: grouting, text: Grouting post-tensioning tendons}
+  - {id: grout, text: Grout, blank: true}
+  - {id: anchor, text: Anchor installation}
+  - {id: hw, text: Anchorages and associated hardware}
+links:
+  - {from: pt, to: mat, label: uses}
+  - {from: pt, to: duct, label: begins with}
+  - {from: pt, to: grouting, label: ends with}
+  - {from: mat, to: grout, label: includes}
+  - {from: duct, to: anchor, label: requires}
+  - {from: anchor, to: hw, label: places}
+  - {from: grouting, to: grout, label: injects, cross: true}
+  - {from: hw, to: mat, label: is part of, cross: true}
+source: FHWA NHI Post-Tensioning Tendon Installation and Grouting Manual, via LearnersFirst

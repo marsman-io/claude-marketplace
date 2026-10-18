@@ -1,0 +1,5 @@
+# expect: scores must be numbers
+type: attribute-matrix
+options: [A, B]
+criteria:
+  - {name: Cost, scores: [high, 2]}

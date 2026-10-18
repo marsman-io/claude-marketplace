@@ -1,0 +1,24 @@
+{
+  "name": "learning-organizers",
+  "version": "0.1.0",
+  "description": "Build and edit graphic organizers and learning tools: T-charts, weighted attribute matrices, flow charts, mind maps, concept maps, K-W-L charts, anticipation guides, action plans, structured notes, assessment checklists, rubrics, self-questioning sheets and whole-lesson handout kits. Each is one YAML spec rendered by Typst into a printable PDF, a PNG and a live picture in the terminal through cc-intelligent-ui, with an answer key and a learner version (writing space where the answers were) from the same spec. Grounded in the FHWA NHI LearnersFirst instructor handbook. Two skills (graphic-organizer, lesson-kit), a stdlib-only CLI and a mutation-checked self-test. No agents.",
+  "author": {
+    "name": "Patrick Holloway",
+    "url": "https://github.com/marsman-io"
+  },
+  "homepage": "https://github.com/marsman-io/claude-marketplace",
+  "repository": "https://github.com/marsman-io/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "graphic-organizers",
+    "learning-tools",
+    "instructional-design",
+    "worksheets",
+    "concept-map",
+    "mind-map",
+    "rubric",
+    "typst",
+    "cc-intelligent-ui",
+    "claude-code-skills"
+  ]
+}

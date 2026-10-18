@@ -1,0 +1,16 @@
+# Anticipation guide: 2–10 statements, before and after. Adapted from FHWA LearnersFirst, Figure 18.
+type: anticipation-guide
+title: NEPA impacts
+instructions: Before the lesson, mark whether you agree or disagree. During the lesson, note where you found evidence. Mark again after.
+responses: [Agree, Disagree]
+statements:
+  - text: National Environmental Policy Act (NEPA) mandates are unreasonable.
+    answer: Disagree
+    evidence: NEPA requires agencies to consider impacts and alternatives, not to choose the least-impact option.
+  - text: Every federally funded highway project needs a full environmental impact statement.
+    answer: Disagree
+    evidence: Most projects qualify for a categorical exclusion or an environmental assessment.
+  - text: Public involvement is part of the NEPA process.
+    answer: Agree
+    evidence: Scoping and public comment are required stages.
+source: Abdelmoez (2018), via FHWA NHI LearnersFirst

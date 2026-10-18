@@ -1,0 +1,24 @@
+# Rubric: criteria × levels with explicit descriptors. Adapted from FHWA LearnersFirst, Table 6 and Figure 52.
+type: rubric
+title: Instructor rubric — classroom management
+levels:
+  - {score: 3, label: Excellent, definition: Performance exceeds expectations and demonstrates complete mastery}
+  - {score: 2, label: Acceptable, definition: Performance meets expectations and demonstrates competency}
+  - {score: 1, label: Marginal, definition: Elements of competency shown but performance does not demonstrate mastery}
+  - {score: 0, label: Unacceptable, definition: Performance was expected but not demonstrated}
+criteria:
+  - skill: Use of room
+    descriptors:
+      - Moves around the room to engage participants without distracting; directs dialogue to everyone; always visible.
+      - Moves around the room to encourage and engage participants.
+      - Limited movement; directs dialogue to one section or one participant.
+      - Instructs from the front of the room, behind the lectern.
+  - skill: Managing discussion
+    descriptors:
+      - Draws in quiet participants and redirects dominant ones smoothly.
+      - Keeps discussion on topic and on time.
+      - Lets discussion drift or run long.
+      - Discussion is absent or uncontrolled.
+score-column: true
+passing: At least one Excellent in each section and no less than Acceptable for each competency skill.
+source: NHI (2018), via FHWA NHI LearnersFirst

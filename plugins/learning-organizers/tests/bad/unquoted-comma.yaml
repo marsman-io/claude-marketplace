@@ -1,0 +1,5 @@
+# expect: `try` has no value
+type: concept-map
+concepts: [{id: a, text: A}, {id: b, text: B}]
+links:
+  - {from: a, to: b, label: if not possible, try}

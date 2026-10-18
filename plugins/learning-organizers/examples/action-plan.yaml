@@ -1,0 +1,14 @@
+# Action plan: goal, tasks, owners, deadlines, resources, measures. FHWA LearnersFirst, Action Plans.
+type: action-plan
+title: Back at work — applying the course
+goal: Start two practices from this course in my team within 60 days
+tasks:
+  - {task: Share the inspection flow chart at the team meeting, owner: Me, due: Week 1, resources: Course handout, measure: Team has a copy}
+  - {task: Pilot the assessment checklist on two field visits, owner: Me + mentor, due: Week 3, resources: Checklist template, measure: Two completed checklists}
+  - {task: Review results with my supervisor, owner: Me, due: Week 5, measure: Decision to adopt or adjust}
+  - {task: Train one colleague on the checklist, owner: Me, due: Week 8, resources: 1 hour, measure: Colleague uses it unaided}
+milestones:
+  - {date: Day 30, text: Pilot complete}
+  - {date: Day 60, text: "Practice adopted or dropped, with reasons"}
+rows: 6
+source: FHWA NHI LearnersFirst, Action Plans

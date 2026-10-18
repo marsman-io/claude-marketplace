@@ -57,6 +57,11 @@
       "name": "developer-docs-skills",
       "source": "./plugins/developer-docs-skills",
       "description": "Ten codebase-neutral skills for writing and auditing the documentation of a multi-surface developer tool (CLI, SDK, REST API, MCP server, dashboard, installer, docs), built on Diátaxis — every page is one of tutorial / how-to / reference / explanation and mixing modes is the primary documentation failure. Ships the flagship docs-diataxis-audit (classify every page, flag mode-mixing, find missing quadrants), four generative mode-builders quickstart-builder (install->first-call with a time-to-first-success target), tutorial-scaffold (learning-oriented), how-to-recipe (task-oriented), and explanation-doc (understanding-oriented), reference-from-spec (machine-generated reference from an OpenAPI spec / --help dump / type signatures), and the read-only critics readme-audit (standard-readme + Make a README), doc-surface-drift (docs vs the actual surfaces, partly machine-checkable), style-conformance (Google dev-docs style guide), and code-sample-audit (runnable, copy-pasteable, idempotent samples). Grounded in Diátaxis, the Google style guide, Write the Docs, and standard-readme. No agents; each skill auto-routes on its own triggers. Completes the trio with experience-mapping-skills and dx-evaluation-skills: map, evaluate, then document."
+    },
+    {
+      "name": "learning-organizers",
+      "source": "./plugins/learning-organizers",
+      "description": "Build and edit graphic organizers and learning tools — T-charts, weighted attribute matrices, flow charts, mind maps, concept maps, K-W-L charts, anticipation guides, action plans, structured notes, assessment checklists, rubrics, self-questioning sheets and lesson kits — as one YAML spec each, rendered by Typst to a printable PDF, a PNG and a live terminal picture via cc-intelligent-ui, with an answer key and a learner version from the same spec. Grounded in the FHWA NHI LearnersFirst instructor handbook. Two skills (graphic-organizer, lesson-kit), a stdlib CLI and a mutation-checked self-test. No agents."
     }
   ]
 }

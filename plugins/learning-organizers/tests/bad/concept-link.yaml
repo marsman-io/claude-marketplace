@@ -1,0 +1,4 @@
+# expect: `ghost` is not a concept id
+type: concept-map
+concepts: [{id: a, text: A}]
+links: [{from: a, to: ghost, label: is}]

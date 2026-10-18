@@ -1,0 +1,5 @@
+# expect: step id `a` is used twice
+type: flow-chart
+steps:
+  - {id: a, text: One}
+  - {id: a, text: Two}

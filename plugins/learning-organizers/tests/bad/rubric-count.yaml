@@ -1,0 +1,5 @@
+# expect: 1 descriptors for 2 levels
+type: rubric
+levels: [{score: 1, label: Low}, {score: 2, label: High}]
+criteria:
+  - {skill: Clarity, descriptors: [only one]}

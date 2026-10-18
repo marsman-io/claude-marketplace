@@ -1,0 +1,5 @@
+# expect: next `nowhere` is not a step id
+type: flow-chart
+steps:
+  - {id: a, text: Start, kind: start, next: nowhere}
+  - {id: b, text: End, kind: end}

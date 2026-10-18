@@ -1,0 +1,14 @@
+# Mind map: key words, not sentences. Adapted from FHWA LearnersFirst, Figure 30.
+type: mind-map
+title: Post-tensioning tendon installation
+center: Post-tensioning tendons
+branches:
+  - text: Duct and tendon installation
+    children: [Anchor installation, Duct placement, Tendon installation, Stressing operations]
+  - text: Materials and components
+    children: [Prestressing steel, {text: Grout, blank: true}, Ducts, Anchorages]
+  - text: Grouting
+    children: [Grout mixing, Injection, {text: Venting and inspection, blank: true}]
+  - text: Quality control
+    children: [Testing, Records]
+source: FHWA NHI Post-Tensioning Tendon Installation and Grouting Manual, via LearnersFirst

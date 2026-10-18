@@ -1,0 +1,3 @@
+# expect: t-chart: missing `right`
+type: t-chart
+left: {heading: Pros}

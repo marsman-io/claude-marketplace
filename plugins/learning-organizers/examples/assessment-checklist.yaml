@@ -1,0 +1,13 @@
+# Assessment checklist: observable criteria, Yes/No. Adapted from FHWA LearnersFirst, Figure 19.
+type: assessment-checklist
+title: Centerline stationing
+fields: [Participant name, Date]
+responses: [Yes, No]
+criteria:
+  - text: "Participant uses correct terminology when defining centerline notation:"
+    sub: [Centerline, Station, Offset]
+  - Participant can mark a centerline station when given stationing notation.
+  - Participant can write the notation for a station marked on a centerline.
+  - Participant can calculate the distance and direction of an offset from the centerline.
+comments: true
+source: Jasper (2018), via FHWA NHI LearnersFirst

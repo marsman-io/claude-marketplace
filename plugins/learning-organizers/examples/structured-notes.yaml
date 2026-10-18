@@ -1,0 +1,28 @@
+# Structured notes: four formats from FHWA LearnersFirst, Table 7.
+type: structured-notes
+title: Lesson 3 — structured notes
+sections:
+  - kind: lines
+    prompt: "Cybersecurity should focus on protecting these operational objectives:"
+    answers: [Availability, Integrity, Confidentiality, Safety]
+  - kind: list
+    prompt: Program review report elements
+    items:
+      - Title page and cover
+      - {text: Executive summary, blank: true}
+      - Background
+      - {text: Scope and methodology, blank: true}
+      - Team members
+      - Successful practices
+      - {text: Recommendations, blank: true}
+      - Conclusion
+      - Appendices
+  - kind: fill-in
+    prompt: Compaction
+    text: "Asphalt compacting systems are either [[static]] or [[dynamic]]. Dynamic systems add [[vibration]] or oscillation to the roller's weight."
+  - kind: group
+    prompt: With your partner, write a purpose and need statement for the historic I-bar chain suspension bridge.
+    parts:
+      - {label: Purpose (1–2 sentences), lines: 3}
+      - {label: Need (1–2 paragraphs per need element), lines: 5}
+source: Murphy (2019), NHI (2017), Sant Anselmo (2018), Mehlo (2019), via FHWA NHI LearnersFirst

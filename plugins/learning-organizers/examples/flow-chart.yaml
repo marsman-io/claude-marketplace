@@ -1,0 +1,32 @@
+# Flow chart with a decision. Adapted from FHWA LearnersFirst, Figure 29.
+type: flow-chart
+title: Underwater bridge inspection (Level 1 / Level 2)
+instructions: Trace the path for each kind of finding. Fill in the dashed boxes.
+steps:
+  - id: start
+    kind: start
+    text: Begin Level 1 and Level 2 inspection
+  - id: inspect
+    text: Visual and tactile inspection of the substructure
+  - id: severity
+    kind: decision
+    text: How serious are the findings?
+    branches:
+      - {label: routine / minor, to: report}
+      - {label: significant, to: notify}
+      - {label: severe, to: shutdown}
+  - id: notify
+    text: Notify owner, issue a flag
+    next: level3
+  - id: level3
+    text: Recommend Level 3 techniques
+    blank: true
+    next: report
+  - id: shutdown
+    text: Notify owner and close the bridge
+    blank: true
+    next: report
+  - id: report
+    kind: end
+    text: End inspection and write the report
+source: Cornish (2018), via FHWA NHI LearnersFirst

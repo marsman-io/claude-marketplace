@@ -1,0 +1,15 @@
+# K-W-L chart. Adapted from FHWA LearnersFirst, Figure 35.
+type: kwl-chart
+title: Diving inspection intensity levels
+instructions: Fill in K and W before the lesson, and L at the end.
+topic: Underwater bridge inspection
+know:
+  - Basic visual and tactile techniques for underwater bridge inspections
+want:
+  - What do I need to do and look for at each level of inspection?
+  - How are the procedures different for piers and pilings?
+learned:
+  - "Level I: detect obvious damage or deterioration over the whole exterior"
+  - "Level I: detect undermining or exposure; limited probing"
+rows: 7
+source: Cornish (2018), via FHWA NHI LearnersFirst

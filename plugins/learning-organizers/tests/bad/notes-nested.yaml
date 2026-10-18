@@ -1,0 +1,5 @@
+# expect: section 1: unknown type `pie`
+type: structured-notes
+sections:
+  - kind: organizer
+    organizer: {type: pie}

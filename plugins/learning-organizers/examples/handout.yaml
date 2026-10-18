@@ -1,0 +1,24 @@
+# Handout: one lesson's set — before (anticipation guide), during (structured notes), after (3-2-1 summary).
+type: handout
+title: Lesson kit — NEPA impacts
+items:
+  - type: anticipation-guide
+    title: Before — what do you think?
+    statements:
+      - {text: NEPA mandates are unreasonable., answer: Disagree, evidence: "Agencies must consider impacts, not pick the least-impact option."}
+      - {text: Public involvement is part of the NEPA process., answer: Agree, evidence: Scoping and comment periods are required.}
+  - type: structured-notes
+    title: During — notes
+    sections:
+      - kind: fill-in
+        text: "The three NEPA classes of action are categorical exclusions, [[environmental assessments]] and [[environmental impact statements]]."
+      - kind: lines
+        prompt: "Name two stages where the public can comment:"
+        lines: 2
+  - type: structured-notes
+    title: After — 3-2-1 summary
+    sections:
+      - {kind: lines, prompt: Three main points, lines: 3}
+      - {kind: lines, prompt: Two ideas you disagree with or found surprising, lines: 2}
+      - {kind: lines, prompt: One question you still have, lines: 1}
+source: FHWA NHI LearnersFirst (Anticipation Guides, Structured Notes, Summarizing)
