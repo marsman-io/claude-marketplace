@@ -62,6 +62,11 @@
       "name": "learning-organizers",
       "source": "./plugins/learning-organizers",
       "description": "Build and edit graphic organizers and learning tools — T-charts, weighted attribute matrices, flow charts, mind maps, concept maps, K-W-L charts, anticipation guides, action plans, structured notes, assessment checklists, rubrics, self-questioning sheets and lesson kits — as one YAML spec each, rendered by Typst to a printable PDF, a PNG and a live terminal picture via cc-intelligent-ui, with an answer key and a learner version from the same spec. Grounded in the FHWA NHI LearnersFirst instructor handbook. Two skills (graphic-organizer, lesson-kit), a stdlib CLI and a mutation-checked self-test. No agents."
+      },
+      {
+      "name": "mission-antislop",
+      "source": "./plugins/mission-antislop",
+      "description": "Anti-slop skills for long-horizon agent missions run unattended from a brief, grounded in a review record where the common failure was evidence that looked like proof (overclaiming prose, tests that can't fail, false green, scoped-to-pass sweeps, narrow fixes) rather than unfinished work. antislop-brief (before launch: premise on base, proofs that can fail, properties not mechanisms, invariants named), antislop-execution (during the run: on-disk scope ledger, named-wrong-implementation mutations, figures tied to the head commit, class-not-line fixes, honest X of Y), antislop-audit (before review: reconcile brief, report and diff; rerun sweeps wider; executed-vs-static labels). Ships a deterministic slop scanner for diffs and completion reports. Adapts taste-skill's LLM-laziness research. No agents."
     }
   ]
 }
