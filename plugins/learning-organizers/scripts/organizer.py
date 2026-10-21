@@ -98,7 +98,188 @@ def check(spec: Path, quiet: bool = False) -> list[str]:
     return errs
 
 
+# ---------- layout geometry (concept maps, flow charts, mind maps) ----------
+#
+# The renderer leaves <organizer-geometry> records of what it drew: the corners
+# of every node and label box and points along every edge, in page points.
+# layout() reads them for one version, checks them against the spec (one box
+# per node, one per drawn label, one path per edge: anything else means the
+# geometry could not be read) and returns the collisions.
+
+GRAPHS = ("concept-map", "flow-chart", "mind-map")
+TOLERANCE = 1.0  # pt: overlaps and crossings deeper than this count, for every spec
+
+
+class GeometryError(Exception):
+    """The geometry could not be read or does not match the spec."""
+
+
+def _as_list(x) -> list:
+    return [] if x is None else x if isinstance(x, list) else [x]
+
+
+def expected_graphs(spec) -> list[dict]:
+    """Type and node, label and edge counts of every graph the spec draws, in document order."""
+    if not isinstance(spec, dict):
+        return []
+    t = spec.get("type")
+    if t == "concept-map":
+        links = [l for l in _as_list(spec.get("links")) if isinstance(l, dict)]
+        return [{"type": t, "node": len(_as_list(spec.get("concepts"))), "edge": len(links),
+                 "label": sum(1 for l in links if l.get("label") is not None)}]
+    if t == "flow-chart":
+        steps = _as_list(spec.get("steps"))
+        edges = labels = 0
+        for i, st in enumerate(steps):
+            nx, br = _as_list(st.get("next")), _as_list(st.get("branches"))
+            edges += len(nx) + len(br)
+            labels += sum(1 for b in br if isinstance(b, dict) and b.get("label") is not None)
+            if not nx and not br and str(st.get("kind", "step")) != "end" and i + 1 < len(steps):
+                edges += 1
+        return [{"type": t, "node": len(steps), "edge": edges, "label": labels}]
+    if t == "mind-map":
+        def size(b) -> int:
+            return 1 + sum(size(c) for c in (_as_list(b.get("children")) if isinstance(b, dict) else []))
+        n = sum(size(b) for b in _as_list(spec.get("branches")))
+        return [{"type": t, "node": n + 1, "edge": n, "label": 0}]
+    if t == "handout":
+        return [g for it in _as_list(spec.get("items")) for g in expected_graphs(it)]
+    if t == "structured-notes":
+        return [g for sec in _as_list(spec.get("sections")) if isinstance(sec, dict) and sec.get("kind") == "organizer"
+                for g in expected_graphs(sec.get("organizer")) if g["type"] in GRAPHS]
+    return []
+
+
+def read_layout(spec: Path, version: str) -> tuple[dict, list[dict]]:
+    """The spec as Typst reads it, and the geometry records one version draws."""
+    load = "json" if spec.suffix.lower() == ".json" else "yaml"
+    r = typst(["eval", f"(spec: {load}(sys.inputs.spec), geometry: query(<organizer-geometry>).map(it => it.value))",
+               "--in", str(PAGE), "--format", "json"], spec, {"format": "png", "version": version})
+    if r.returncode != 0:
+        raise GeometryError(f"typst could not lay out {spec.name} ({version}): {r.stderr.strip()[:300]}")
+    out = json.loads(r.stdout)
+    return out["spec"], out["geometry"]
+
+
+def assemble(records: list[dict]) -> dict[int, dict[str, dict]]:
+    """graph → element key → {kind, id, ends, shape, box (x0, y0, x1, y1) | path [(x, y), …]}.
+    An edge's canvas points are mapped onto the page through its graph's frame marks."""
+    graphs: dict[int, dict[str, dict]] = {}
+    for r in records:
+        el = graphs.setdefault(r["graph"], {}).setdefault(r["key"], {
+            "kind": r["kind"], "id": r["id"], "ends": r.get("ends"), "shape": r.get("shape", "box"),
+            "pages": set(), "parts": {}})
+        el["pages"].add(r["page"])
+        el["parts"][r["part"]] = (float(r["x"]), float(r["y"]))
+        if r.get("pts") is not None:
+            el["pts"] = r["pts"]
+        if r.get("unit") is not None:
+            el["unit"] = float(r["unit"])
+    for g in graphs.values():
+        frame = g.pop("frame", None)
+        for el in g.values():
+            parts = el.pop("parts")
+            if el["kind"] == "edge":
+                el["path"] = []
+                if frame and {"o", "x", "y"} <= set(frame["parts"]) and frame.get("unit"):
+                    (ox, oy), (xx, xy), (yx, yy) = (frame["parts"][k] for k in ("o", "x", "y"))
+                    u = frame["unit"]
+                    el["path"] = [(ox + (xx - ox) * px / u + (yx - ox) * py / u,
+                                   oy + (xy - oy) * px / u + (yy - oy) * py / u) for px, py in el.pop("pts", [])]
+            elif "tl" in parts and "br" in parts:
+                el["box"] = (*parts["tl"], *parts["br"])
+    return graphs
+
+
+def validate_geometry(graphs: dict[int, dict[str, dict]], want: list[dict]) -> list[str]:
+    """Why these records cannot be trusted as the drawing of this spec ([] when they can)."""
+    errs = []
+    if len(graphs) != len(want):
+        errs.append(f"{len(graphs)} graph(s) recorded, the spec draws {len(want)}")
+    for (gid, g), w in zip(sorted(graphs.items()), want):
+        for kind in ("node", "label", "edge"):
+            n = sum(1 for el in g.values() if el["kind"] == kind)
+            if n != w[kind]:
+                errs.append(f"graph {gid} ({w['type']}): {n} {kind} record(s), the spec has {w[kind]}")
+        for el in g.values():
+            if len(el["pages"]) != 1:
+                errs.append(f"{el['id']}: drawn across pages {sorted(el['pages'])}")
+            if el["kind"] == "edge":
+                p = el["path"]
+                if len(p) < 2 or all(q == p[0] for q in p):
+                    errs.append(f"{el['id']}: no drawn path")
+                if not isinstance(el["ends"], list) or any(k not in g or g[k]["kind"] != "node" for k in el["ends"]):
+                    errs.append(f"{el['id']}: its ends {el['ends']} are not recorded nodes")
+            else:
+                b = el.get("box")
+                if b is None:
+                    errs.append(f"{el['id']}: box corners missing")
+                elif b[2] - b[0] <= 0 or b[3] - b[1] <= 0:
+                    errs.append(f"{el['id']}: box has no area ({b[2] - b[0]:.1f}×{b[3] - b[1]:.1f} pt)")
+                if el["kind"] == "label" and (el["ends"] not in g or g[el["ends"]]["kind"] != "edge"):
+                    errs.append(f"{el['id']}: its edge {el['ends']} is not recorded")
+    return errs
+
+
+def outline(el: dict) -> list[tuple[float, float]]:
+    """A node or label's drawn outline as a convex polygon: its box, or the diamond inscribed in it."""
+    x0, y0, x1, y1 = el["box"]
+    if el["shape"] == "diamond":
+        xm, ym = (x0 + x1) / 2, (y0 + y1) / 2
+        return [(x0, ym), (xm, y0), (x1, ym), (xm, y1)]
+    return [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+
+
+def _collide(a: list[tuple[float, float]], b: list[tuple[float, float]]) -> bool:
+    """Separating axes: two convex shapes (a segment is one) collide when, along
+    every edge normal of either, one must move more than the tolerance to clear
+    the other."""
+    for poly in (a, b):
+        for (px, py), (qx, qy) in zip(poly, poly[1:] + poly[:1]):
+            nx, ny = qy - py, px - qx
+            norm = (nx * nx + ny * ny) ** 0.5
+            if norm == 0:
+                continue
+            pa = [(x * nx + y * ny) / norm for x, y in a]
+            pb = [(x * nx + y * ny) / norm for x, y in b]
+            if min(max(pa) - min(pb), max(pb) - min(pa)) <= TOLERANCE:
+                return False
+    return True
+
+
+def collisions(graphs: dict[int, dict[str, dict]]) -> list[str]:
+    """One line per colliding pair: a node or label over another, an edge
+    through a node other than its two ends, an edge through another edge's label."""
+    out = []
+    for g in graphs.values():
+        boxes = [el for el in g.values() if el["kind"] != "edge"]
+        for i, a in enumerate(boxes):
+            for b in boxes[i + 1:]:
+                if _collide(outline(a), outline(b)):
+                    out.append(f"{a['id']} overlaps {b['id']}")
+        for key, e in g.items():
+            if e["kind"] != "edge":
+                continue
+            segments = list(zip(e["path"], e["path"][1:]))
+            for k, b in g.items():
+                if (b["kind"] == "node" and k not in e["ends"]) or (b["kind"] == "label" and b["ends"] != key):
+                    if any(_collide(list(s), outline(b)) for s in segments):
+                        out.append(f"{e['id']} crosses {b['id']}")
+    return out
+
+
+def layout(spec: Path, version: str) -> list[str]:
+    """The collisions one version draws; GeometryError when that cannot be told."""
+    data, records = read_layout(spec, version)
+    graphs = assemble(records)
+    errs = validate_geometry(graphs, expected_graphs(data))
+    if errs:
+        raise GeometryError("; ".join(errs))
+    return collisions(graphs)
+
+
 def cmd_types(_: argparse.Namespace) -> None:
+
     for f in sorted(EXAMPLES.glob("*.yaml")):
         first = f.read_text(encoding="utf-8").splitlines()[0].lstrip("# ").strip()
         print(f"{f.stem:22} {first}")

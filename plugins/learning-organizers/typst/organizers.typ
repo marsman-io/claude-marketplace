@@ -256,6 +256,121 @@
   (rank: rank, x: x)
 }
 
+// ---------- geometry: what a graph actually drew ----------
+// Concept maps, flow charts and mind maps leave `metadata(…)
+// <organizer-geometry>` records of what they drew: the two corners of every
+// node and label box, measured where they land on the page
+// (`here().position()`, in pt, y down, so fletcher's grid, CeTZ's anchors and
+// `fit`'s scaling are all in them); every edge as points sampled along the
+// curve it was drawn as, in canvas units (`pts`); and three `frame` marks per
+// graph, the canvas points (0, 0), (unit, 0) and (0, unit) as measured on the
+// page, which map those points into the same frame. `key` names the element
+// within its graph (`graph` counts graphs in the document). An edge's `ends`
+// are its two node keys, a label's is its edge's key; a node's `shape` says
+// whether its outline is the box or the diamond inscribed in it. organizer.py
+// assembles and checks them (`check`; tests/selftest.py).
+#let _graph = counter("organizer-graph")
+
+#let _geo(key, kind, id, part, ends: none, shape: "box", pts: none, unit: none) = context {
+  let p = here().position()
+  [#metadata((graph: _graph.get().first(), key: key, kind: kind, id: id, part: part, ends: ends,
+    shape: shape, pts: pts, unit: unit, page: p.page, x: p.x.pt(), y: p.y.pt())) <organizer-geometry>]
+}
+
+// A zero-size mark for CeTZ `content` at a canvas point.
+#let _geo-pt(..args) = box(width: 0pt, height: 0pt, _geo(..args))
+
+// The frame marks of a CeTZ canvas whose coordinates are numbers of `unit`.
+#let _geo-frame(content, unit) = {
+  let zero = if type(unit) == length { 0pt } else { 0 }
+  for (part, pt) in (("o", (zero, zero)), ("x", (unit, zero)), ("y", (zero, unit))) {
+    content(pt, _geo-pt("frame", "frame", "frame", part, unit: if type(unit) == length { unit.pt() } else { unit }))
+  }
+}
+
+// The box `body` occupies, by its top-left and bottom-right corners.
+#let _tracked(key, kind, id, body, ends: none) = box({
+  place(top + left, _geo(key, kind, id, "tl", ends: ends))
+  place(bottom + right, _geo(key, kind, id, "br", ends: ends))
+  body
+})
+
+// Samples of a drawn fletcher edge: a straight line's two ends, a polyline's
+// corners, an arc's points every few degrees.
+#let _edge-samples(edge, kind, verts) = {
+  if kind == "arc" {
+    let (from, to) = verts
+    let (center, radius, start, stop) = fletcher.utils.get-arc-connecting-points(from, to, edge.bend)
+    let n = 48
+    range(n + 1).map(j => {
+      let a = start + (stop - start) * j / n
+      (center.at(0) + radius * calc.cos(a), center.at(1) + radius * calc.sin(a))
+    })
+  } else { verts }
+}
+
+// fletcher's `render` with the drawing unchanged (fletcher's own
+// draw-anchored-* steps) plus geometry marks: each node outline's bounding box
+// from CeTZ anchors, and each edge sampled between the anchors it was drawn to.
+// `nkeys` maps a node name to (key, id); `ekeys` lists (key, id, from, to) in
+// edge order.
+#let _geo-render(nkeys, ekeys) = (grid, nodes, edges, options) => fletcher.cetz.canvas({
+  import fletcher.cetz.draw: *
+  let ok = edges.len() == ekeys.len()
+  for (k, edge) in edges.enumerate() {
+    let ns = fletcher.find-nodes-for-edge(grid, nodes, edge)
+    let mark(verts) = if ok {
+      let (key, id, a, b) = ekeys.at(k)
+      let pts = _edge-samples(edge, edge.kind, verts).map(q => q.map(v => v.pt()))
+      content(verts.first(), _geo-pt(key, "edge", id, "path", ends: (a, b), pts: pts))
+    }
+    let outlines(i, ray) = { group(ns.at(i).map(fletcher.draw-node-outline).join()); ray }
+    let obj = if edge.kind == "line" {
+      let (from, to) = edge.final-vertices
+      let θ = fletcher.utils.angle-between(from, to) + 90deg
+      if ns.at(0).len() == 1 { from = fletcher.cetz.vector.add(from, fletcher.defocus-adjustment(ns.at(0).at(0), θ - 90deg)) }
+      if ns.at(1).len() == 1 { to = fletcher.cetz.vector.add(to, fletcher.defocus-adjustment(ns.at(1).at(0), θ + 90deg)) }
+      let dummy = line(from, to)
+      fletcher.find-anchor-pair((outlines(0, dummy), outlines(1, dummy)), (from, to), anchors => {
+        (edge.post)(fletcher.draw-edge-line(edge + (final-vertices: anchors)))
+        mark(anchors)
+      })
+    } else if edge.kind == "arc" {
+      let (from, to) = edge.final-vertices
+      let θ = fletcher.utils.angle-between(from, to)
+      let rays = ((from, θ + edge.bend), (to, θ - edge.bend + 180deg)).map(((p, φ)) =>
+        line(p, fletcher.cetz.vector.add(p, fletcher.utils.vector-polar(10cm, φ))))
+      fletcher.find-anchor-pair((outlines(0, rays.at(0)), outlines(1, rays.at(1))), (from, to), anchors => {
+        (edge.post)(fletcher.draw-edge-arc(edge + (final-vertices: anchors)))
+        mark(anchors)
+      })
+    } else {
+      let vs = edge.final-vertices
+      let ends = (line(..vs.slice(0, 2)), line(..vs.slice(-2)))
+      fletcher.find-anchor-pair((outlines(0, ends.at(0)), outlines(1, ends.at(1))), (vs.first(), vs.last()), anchors => {
+        let e = edge
+        e.final-vertices.at(0) = anchors.at(0)
+        e.final-vertices.at(-1) = anchors.at(1)
+        (edge.post)(fletcher.draw-edge-polyline(e))
+        mark(e.final-vertices)
+      })
+    }
+    if edge.layer != 0 { on-layer(edge.layer, obj) } else { obj }
+  }
+  _geo-frame(content, 100pt)
+  for (i, node) in nodes.enumerate() {
+    fletcher.draw-node(node)
+    let nk = nkeys.at(str(node.name), default: none)
+    if nk != none {
+      let g = "_geo-node-" + str(i)
+      hide(group(name: g, { translate(node.pos.xyz); (node.shape)(node, node.outset) }))
+      let shape = if node.shape == fletcher.shapes.diamond { "diamond" } else { "box" }
+      content(g + ".north-west", _geo-pt(nk.at(0), "node", nk.at(1), "tl", shape: shape))
+      content(g + ".south-east", _geo-pt(nk.at(0), "node", nk.at(1), "br", shape: shape))
+    }
+  }
+})
+
 // ---------- validation ----------
 
 #let _ids(list, what) = {
@@ -502,7 +617,8 @@
       stroke: if hid { (paint: T.muted, thickness: 0.8pt, dash: "dashed") } else { 0.9pt + col })
   })
   let at(c, r) = if right { (r, c) } else { (c, r) }
-  let es = edges.map(e => {
+  let eid(e) = "arrow " + s(steps.at(e.from).id) + "→" + s(steps.at(e.to).id) + if e.label != none { " " + repr(s(e.label)) } else { "" }
+  let es = edges.enumerate().map(((k, e)) => {
     let back = e.to <= e.from
     let (r0, r1) = (L.rank.at(e.from), L.rank.at(e.to))
     // an edge that skips ranks goes around the nodes between, on its side
@@ -517,12 +633,18 @@
     } else { () }
     let args = (label("n" + str(e.from)),) + via + (label("n" + str(e.to)), "-|>")
     if e.label != none { args.push(text(size: 0.82em, s(e.label))) }
-    edge(..args, bend: if back { -50deg } else { 0deg }, label-fill: T.bg)
+    edge(..args, bend: if back { -50deg } else { 0deg }, label-fill: T.bg,
+      label-wrapper: w => _tracked("l" + str(k), "label", "label " + repr(s(e.label)) + " on " + s(steps.at(e.from).id) + "→" + s(steps.at(e.to).id),
+        box(w.label, inset: .2em, radius: .2em, fill: w.label-fill), ends: "e" + str(k)))
   })
+  _graph.step()
   fit(T, height: true, align(center, diagram(
     spacing: if right { (10mm, 4mm) } else { (3mm, 9mm) },
     node-inset: 6pt, node-corner-radius: 3pt,
     edge-stroke: 0.8pt + T.fg, node-stroke: 0.8pt + T.fg,
+    render: _geo-render(
+      steps.enumerate().map(((i, st)) => ("n" + str(i), ("n" + str(i), "step " + s(st.id)))).to-dict(),
+      edges.enumerate().map(((k, e)) => ("e" + str(k), eid(e), "n" + str(e.from), "n" + str(e.to)))),
     ..nodes, ..es,
   )))
 }
@@ -549,6 +671,10 @@
       fill: if hid { none } else { tint(col, pct: if L.rank.at(i) == 0 { 70% } else { 86% }) },
       stroke: if hid { (paint: T.muted, thickness: 0.8pt, dash: "dashed") } else { 0.9pt + col })
   })
+  let lid(l) = "link " + s(cs.at(l.from).id) + "→" + s(cs.at(l.to).id) + {
+    let lab = as-item(l.label)
+    if lab != none { " " + repr(lab.text) } else { "" }
+  }
   let es = links.enumerate().map(((k, l)) => {
     // stagger labels of neighbouring links from one concept so a fan stays legible
     let sib = links.slice(0, k).filter(o => o.from == l.from and not o.cross).len()
@@ -559,15 +685,22 @@
         else { text(size: 0.82em, style: "italic", answer(ctx, lab)) })
     }
     edge(..args, label-fill: T.bg, label-pos: if l.cross { 0.3 } else if calc.odd(sib) { 0.74 } else { 0.5 }, bend: if l.cross { 35deg } else if l.to <= l.from { -40deg } else { 0deg },
-      stroke: if l.cross { (paint: T.muted, thickness: 0.8pt, dash: "dashed") } else { 0.8pt + T.fg })
+      stroke: if l.cross { (paint: T.muted, thickness: 0.8pt, dash: "dashed") } else { 0.8pt + T.fg },
+      label-wrapper: w => _tracked("l" + str(k), "label", "label " + repr(s(lab.text)) + " on " + s(cs.at(l.from).id) + "→" + s(cs.at(l.to).id),
+        box(w.label, inset: .2em, radius: .2em, fill: w.label-fill), ends: "e" + str(k)))
   })
   let fq = spec.at("focus-question", default: none)
   if fq != none {
     block(below: 0.8em, inset: 7pt, radius: 3pt, fill: tint(T.accent, pct: 90%),
       [#text(weight: "bold", "Focus question: ")#s(fq)])
   }
+  _graph.step()
   fit(T, height: true, align(center, diagram(
-    spacing: (4mm, 17mm), node-inset: 6pt, edge-stroke: 0.8pt + T.fg, ..nodes, ..es)))
+    spacing: (4mm, 17mm), node-inset: 6pt, edge-stroke: 0.8pt + T.fg,
+    render: _geo-render(
+      cs.enumerate().map(((i, c)) => ("c" + str(i), ("c" + str(i), "concept " + s(c.id)))).to-dict(),
+      links.enumerate().map(((k, l)) => ("e" + str(k), lid(l), "c" + str(l.from), "c" + str(l.to)))),
+    ..nodes, ..es)))
 }
 
 // Mind map: two-sided tree around the centre, branch colour from the palette.
@@ -621,6 +754,8 @@
     pos.insert(nd.id, (x: nd.side * xs(nd.depth), y: -(nd.y - L / 2) * h, side: nd.side))
   }
   let hub = as-item(spec.center)
+  let mid(nd) = "branch " + nd.id + " " + repr(nd.item.text)
+  _graph.step()
   fit(T, height: true, align(center, cetz.canvas(length: 1cm, {
     import cetz.draw: *
     for nd in nodes {
@@ -630,24 +765,34 @@
         (q.x + q.side * bw, q.y)
       }
       let mx = (from.at(0) + p.x) / 2
-      bezier(from, (p.x, p.y), (mx, from.at(1)), (mx, p.y),
+      let (a, c1, c2, b) = (from, (mx, from.at(1)), (mx, p.y), (p.x, p.y))
+      bezier(a, b, c1, c2,
         stroke: (paint: nd.color, thickness: if nd.depth == 1 { 1.6pt } else { 0.9pt }))
+      // the cubic's own points, so the samples lie on the drawn curve
+      let pts = range(25).map(j => {
+        let u = j / 24
+        let wts = (calc.pow(1 - u, 3), 3 * calc.pow(1 - u, 2) * u, 3 * (1 - u) * calc.pow(u, 2), calc.pow(u, 3))
+        range(2).map(d => (a, c1, c2, b).zip(wts).map(((q, w)) => q.at(d) * w).sum())
+      })
+      content(a, _geo-pt("e" + nd.id, "edge", "curve " + nd.parent + "→" + nd.id, "path",
+        ends: (if nd.parent == "root" { "hub" } else { "m" + nd.parent }, "m" + nd.id), pts: pts))
     }
+    _geo-frame(content, 1)
     for nd in nodes {
       let p = pos.at(nd.id)
       let hid = hidden(ctx, nd.item)
       content((p.x, p.y), anchor: if p.side == 1 { "west" } else { "east" },
-        box(width: bw * 1cm, inset: 5pt, radius: 4pt,
+        _tracked("m" + nd.id, "node", mid(nd), box(width: bw * 1cm, inset: 5pt, radius: 4pt,
           fill: if hid or nd.depth > 1 { none } else { tint(nd.color, pct: 80%) },
           stroke: if hid { (paint: T.muted, thickness: 0.7pt, dash: "dashed") }
             else if nd.depth == 1 { 0.9pt + nd.color } else { (bottom: 0.9pt + nd.color) },
           align(if p.side == 1 { left } else { right },
             if hid { box(height: 1.1em) }
             else if nd.depth == 1 { text(weight: "bold", answer(ctx, nd.item)) }
-            else { text(size: 0.9em, answer(ctx, nd.item)) })))
+            else { text(size: 0.9em, answer(ctx, nd.item)) }))))
     }
-    content((0, 0), box(width: cw * 1cm, inset: 8pt, radius: 8pt, fill: tint(T.accent, pct: 70%),
-      stroke: 1.4pt + T.accent, align(center, text(weight: "bold", size: 1.1em, answer(ctx, hub)))))
+    content((0, 0), _tracked("hub", "node", "center " + repr(hub.text), box(width: cw * 1cm, inset: 8pt, radius: 8pt, fill: tint(T.accent, pct: 70%),
+      stroke: 1.4pt + T.accent, align(center, text(weight: "bold", size: 1.1em, answer(ctx, hub))))))
   })))
 }
 

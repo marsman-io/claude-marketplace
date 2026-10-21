@@ -7,6 +7,7 @@ inline block. Stdlib only. Run: python3 tests/selftest.py
 """
 from __future__ import annotations
 
+import copy
 import glob
 import json
 import shutil
@@ -73,6 +74,55 @@ with tempfile.TemporaryDirectory() as tmp:
         expect(r.returncode == 1 and want in r.stdout, f"refuse {bad.name}: {want!r}")
         r = run("render", str(bad), "--out-dir", str(out))
         expect(r.returncode == 1, f"render refuses {bad.name}")
+
+    # Layout geometry: every graph example and every spec in tests/layout/, in
+    # both versions, draws no node or label over another, no edge through a
+    # node other than its ends and no edge through another edge's label. The
+    # records must match the spec (one box per node and drawn label, one path
+    # per edge, every box with area), or the geometry was not read.
+    layouts = [ex for ex in examples if ex.stem in organizer.GRAPHS] + sorted((ROOT / "tests" / "layout").glob("*.yaml"))
+    reference = None
+    for spec in layouts:
+        for version in ("key", "learner"):
+            try:
+                data, records = organizer.read_layout(spec, version)
+            except organizer.GeometryError as e:
+                expect(False, f"geometry {spec.name} ({version}) is read: {e}")
+                continue
+            graphs = organizer.assemble(records)
+            want = organizer.expected_graphs(data)
+            errs = organizer.validate_geometry(graphs, want)
+            counts = " + ".join(f"{sum(w[k] for w in want)} {k}s" for k in ("node", "label", "edge"))
+            expect(bool(want) and not errs, f"geometry {spec.name} ({version}): {len(records)} records for {counts}, every box with area {errs[:2]}")
+            hits = organizer.collisions(graphs)
+            expect(not hits, f"layout {spec.name} ({version}) draws no collision {hits}")
+            if spec.name == "concept-map.yaml" and version == "key":
+                reference = (graphs, want)
+
+    # The check itself, fed a real render's geometry: two concept boxes moved
+    # onto each other are reported; no records, a missing record or boxes
+    # without area are never a clean layout.
+    if reference:
+        graphs, want = reference
+        moved = copy.deepcopy(graphs)
+        g = next(iter(moved.values()))
+        by_id = {el["id"]: el for el in g.values()}
+        by_id["concept anchor"]["box"] = tuple(v + 6 for v in by_id["concept duct"]["box"])
+        hits = organizer.collisions(moved)
+        expect({"concept anchor overlaps concept duct", "concept duct overlaps concept anchor"} & set(hits),
+               f"two concept boxes forced to overlap are reported {hits[:3]}")
+        expect(bool(organizer.validate_geometry({}, want)), "no geometry records is not a clean layout")
+        fewer = copy.deepcopy(graphs)
+        g = next(iter(fewer.values()))
+        del g[next(k for k, el in g.items() if el["kind"] == "label")]
+        expect(bool(organizer.validate_geometry(fewer, want)), "a missing label record is not a clean layout")
+        flat = copy.deepcopy(graphs)
+        for el in next(iter(flat.values())).values():
+            if "box" in el:
+                el["box"] = (0.0, 0.0, 0.0, 0.0)
+        expect(bool(organizer.validate_geometry(flat, want)), "boxes without area are not a clean layout")
+    else:
+        expect(False, "the concept-map example's geometry was read for the check's own tests")
 
     spec = out / "t.yaml"
     shutil.copyfile(ROOT / "examples" / "t-chart.yaml", spec)

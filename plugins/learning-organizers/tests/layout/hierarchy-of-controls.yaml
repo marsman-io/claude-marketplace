@@ -1,0 +1,18 @@
+type: concept-map
+title: Hierarchy of hazard controls
+focus-question: How do the five levels of hazard control relate to one another?
+instructions: Fill in the two blank concepts. Use the linking phrases to help you decide what belongs in each box.
+concepts:
+  - {id: hoc, text: Hierarchy of hazard controls}
+  - {id: elim, text: Elimination}
+  - {id: sub, text: Substitution, blank: true}
+  - {id: eng, text: Engineering controls}
+  - {id: adm, text: Administrative controls, blank: true}
+  - {id: ppe, text: Personal protective equipment (PPE)}
+links:
+  - {from: hoc, to: elim, label: "removes it"}
+  - {from: hoc, to: sub, label: "swaps it"}
+  - {from: hoc, to: eng, label: "isolates it"}
+  - {from: hoc, to: adm, label: "changes work"}
+  - {from: hoc, to: ppe, label: "shields worker"}
+  - {from: ppe, to: elim, label: is the last resort compared to, cross: true}
