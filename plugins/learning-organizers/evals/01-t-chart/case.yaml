@@ -1,0 +1,46 @@
+schema_version: "1.0"
+name: t-chart
+description: >-
+  C2(a) routing: a single-organizer request worded the way the graphic-organizer
+  description's trigger is ("make a T-chart comparing…"). Scored on the outcome:
+  a t-chart spec at the named path, rendered to its key and learner PDFs.
+tags: [routing]
+context:
+  scaffold_script: seed-typst-cache.sh
+execution:
+  prompt: |
+    Make a T-chart comparing renting a home with buying one, for the personal-finance
+    class I teach to adults. Four or five points a side is plenty. Save it as
+    organizers/rent-vs-buy.yaml and give me something I can print for the class.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Skill, Read, Write, Edit, Glob, Grep, Bash]
+runs: 3
+graders:
+  - type: tool_used
+    name: fired-graphic-organizer
+    tool: Skill
+    input_match: "(?:[\\w-]+:)?graphic-organizer"
+  - type: regex
+    name: spec-is-a-t-chart
+    target: {source: file, path: organizers/rent-vs-buy.yaml}
+    pattern: "^type:[ \\t]*[\"']?t-chart[\"']?[ \\t]*$"
+    flags: m
+  - type: regex
+    name: spec-has-both-sides
+    target: {source: file, path: organizers/rent-vs-buy.yaml}
+    pattern: "^left:[\\s\\S]*^right:|^right:[\\s\\S]*^left:"
+    flags: m
+  - type: file_exists
+    name: rendered-learner-pdf
+    path: "organizers/rent-vs-buy.learner.pdf"
+  - type: llm
+    name: content-fits-the-request
+    focus: last_message
+    criteria: |
+      PASS when the reply does all of these:
+      - names a saved T-chart (two sides: renting and buying) at organizers/rent-vs-buy.yaml;
+      - points the teacher to a printable file (a PDF or PNG path);
+      - its points are about renting versus buying a home.
+      FAIL only when: there is no saved file, the two sides are not renting and buying,
+      or the reply asks a question instead of making the chart.

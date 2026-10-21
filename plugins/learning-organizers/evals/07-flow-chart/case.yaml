@@ -1,0 +1,36 @@
+schema_version: "1.0"
+name: flow-chart
+description: >-
+  C2(c) routing, second single-organizer type: "flow chart this process" with a
+  decision in it. Scored on a flow-chart spec with a decision step and branches.
+tags: [routing]
+context:
+  scaffold_script: seed-typst-cache.sh
+execution:
+  prompt: |
+    Flow chart this process for our new library volunteers: a patron returns a
+    book; the volunteer scans it; if the book is damaged it goes to the repair
+    shelf, otherwise the volunteer checks whether someone has it on hold; held
+    books go to the hold shelf, everything else goes back on the cart for
+    reshelving. Save it as organizers/book-returns.yaml and make it printable.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Skill, Read, Write, Edit, Glob, Grep, Bash]
+runs: 3
+graders:
+  - type: tool_used
+    name: fired-graphic-organizer
+    tool: Skill
+    input_match: "(?:[\\w-]+:)?graphic-organizer"
+  - type: regex
+    name: spec-is-a-flow-chart
+    target: {source: file, path: organizers/book-returns.yaml}
+    pattern: "^type:[ \\t]*[\"']?flow-chart[\"']?[ \\t]*$"
+    flags: m
+  - type: regex
+    name: has-a-decision-with-branches
+    target: {source: file, path: organizers/book-returns.yaml}
+    pattern: "kind:[ \\t]*decision[\\s\\S]*?branches:"
+  - type: file_exists
+    name: rendered-learner-pdf
+    path: "organizers/book-returns.learner.pdf"

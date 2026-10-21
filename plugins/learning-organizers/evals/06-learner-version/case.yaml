@@ -1,0 +1,46 @@
+schema_version: "1.0"
+name: learner-version
+description: >-
+  C4 edit: starts from an existing spec with answers (examples/t-chart.yaml,
+  copied into cwd as organizers/bridges.yaml by the scaffold) and asks for the
+  learner version with two named items blanked. Passes when exactly those two
+  items carry blank: true and the learner render was requested; the post-run
+  checker proves the spec still checks and the learner copy hides them.
+tags: [edit]
+context:
+  scaffold_script: seed-typst-cache.sh
+execution:
+  prompt: |
+    organizers/bridges.yaml is my T-chart on bridge construction. I want the
+    learner version for Thursday: blank out "Long lane closures and detours" and
+    "Needs heavy lifting equipment and planning" so the participants fill those two
+    in, and keep every other point printed. Then render the learner copy for me.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Skill, Read, Write, Edit, Glob, Grep, Bash]
+runs: 3
+graders:
+  - type: tool_used
+    name: fired-graphic-organizer
+    tool: Skill
+    input_match: "(?:[\\w-]+:)?graphic-organizer"
+  - type: regex
+    name: lane-closures-marked-blank
+    target: {source: file, path: organizers/bridges.yaml}
+    pattern: "text:[ \\t]*[\"']?Long lane closures and detours[\"']?[ \\t]*(?:,|\\n)[ \\t]*blank:[ \\t]*true|blank:[ \\t]*true[ \\t]*(?:,|\\n)[ \\t]*text:[ \\t]*[\"']?Long lane closures and detours"
+  - type: regex
+    name: heavy-lifting-marked-blank
+    target: {source: file, path: organizers/bridges.yaml}
+    pattern: "text:[ \\t]*[\"']?Needs heavy lifting equipment and planning[\"']?[ \\t]*(?:,|\\n)[ \\t]*blank:[ \\t]*true|blank:[ \\t]*true[ \\t]*(?:,|\\n)[ \\t]*text:[ \\t]*[\"']?Needs heavy lifting equipment and planning"
+  - type: regex
+    name: only-those-two-blanked
+    target: {source: file, path: organizers/bridges.yaml}
+    pattern: "blank:[ \\t]*true"
+    match: "count:2"
+  - type: regex
+    name: learner-render-requested
+    target: trace
+    pattern: "\"command\":\"(?:[^\"\\\\]|\\\\.)*?\\brender[ \\t]+[^\"\\\\&;|]*bridges\\.ya?ml"
+  - type: file_exists
+    name: rendered-learner-pdf
+    path: "organizers/bridges.learner.pdf"

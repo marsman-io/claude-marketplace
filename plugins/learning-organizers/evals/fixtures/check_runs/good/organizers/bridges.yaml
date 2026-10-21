@@ -1,0 +1,17 @@
+# Fixture for test_check_runs.py: a valid spec whose key marks two answers blank.
+type: t-chart
+title: Bridge construction techniques
+instructions: List the characteristics of each approach.
+left:
+  heading: Conventional bridge construction
+  items:
+    - Built in place, element by element
+    - {text: Long lane closures and detours, blank: true}
+    - Lower specialised-equipment cost
+right:
+  heading: Accelerated bridge construction
+  items:
+    - Prefabricated elements set on site
+    - {text: Closures measured in days or hours, blank: true}
+    - Needs heavy lifting equipment and planning
+rows: 4

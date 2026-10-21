@@ -1,0 +1,4 @@
+# Fixture for test_check_runs.py: YAML that is not an organizer spec (no organizer `type`).
+type: meeting-notes
+title: Not an organizer
+items: [one, two]

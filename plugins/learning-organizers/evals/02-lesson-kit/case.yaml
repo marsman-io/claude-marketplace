@@ -1,0 +1,53 @@
+schema_version: "1.0"
+name: lesson-kit
+description: >-
+  C2(b) routing: a whole-lesson request ("make the handouts for my lesson on…")
+  fires lesson-kit and produces one `type: handout` spec holding two or more
+  organizer items, rendered to its learner PDF.
+tags: [routing, kit]
+context:
+  scaffold_script: seed-typst-cache.sh
+execution:
+  prompt: |
+    Make the handouts for my lesson on the water cycle (a 50-minute class of
+    11-year-olds). The learning outcome is: students can explain how water moves
+    through evaporation, condensation, precipitation and collection. What I teach:
+    the sun heats water in oceans and lakes and it evaporates into water vapour;
+    the vapour rises, cools and condenses into droplets that form clouds; when the
+    droplets grow heavy they fall as precipitation (rain, snow, sleet or hail);
+    the water collects in oceans, lakes, rivers and underground as groundwater,
+    and the cycle repeats. Plants also release water vapour (transpiration).
+    The outcome is settled, so go ahead and build the set. Save it as
+    organizers/water-cycle.yaml and give me the files to print.
+  max_turns: 40
+  timeout_seconds: 900
+  allowed_tools: [Skill, Read, Write, Edit, Glob, Grep, Bash]
+runs: 3
+graders:
+  - type: tool_used
+    name: fired-lesson-kit
+    tool: Skill
+    input_match: "(?:[\\w-]+:)?lesson-kit"
+  - type: regex
+    name: spec-is-a-handout
+    target: {source: file, path: organizers/water-cycle.yaml}
+    pattern: "^type:[ \\t]*[\"']?handout[\"']?[ \\t]*$"
+    flags: m
+  - type: regex
+    name: handout-has-two-or-more-items
+    target: {source: file, path: organizers/water-cycle.yaml}
+    pattern: "^items:[\\s\\S]*?^[ \\t]*-[ \\t]*\\{?[ \\t]*type:[ \\t]*[\\w-]+[\\s\\S]*^[ \\t]*-[ \\t]*\\{?[ \\t]*type:[ \\t]*[\\w-]+"
+    flags: m
+  - type: file_exists
+    name: rendered-learner-pdf
+    path: "organizers/water-cycle.learner.pdf"
+  - type: llm
+    name: kit-fits-the-lesson
+    focus: last_message
+    criteria: |
+      PASS when the reply does all of these:
+      - names a saved handout set at organizers/water-cycle.yaml with two or more tools;
+      - points the teacher to a printable file (a PDF or PNG path);
+      - the tools are about the water cycle (evaporation, condensation, precipitation, collection).
+      FAIL only when: nothing was saved, the set has a single tool, or the reply asks a
+      question instead of building the set.

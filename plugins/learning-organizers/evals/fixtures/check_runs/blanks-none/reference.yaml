@@ -1,0 +1,6 @@
+# Fixture for test_check_runs.py: `blanks: none` asks the learner copy to show every answer.
+type: t-chart
+title: Reference chart
+blanks: none
+left: {heading: Rent, items: [Lower upfront cost, Landlord repairs]}
+right: {heading: Buy, items: [Builds equity, Owner repairs]}

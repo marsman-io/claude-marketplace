@@ -1,0 +1,44 @@
+schema_version: "1.0"
+name: concept-map
+description: >-
+  C2(c) routing with no trigger phrase: "connected boxes with the relationship
+  written on each link" describes a concept map without naming one. Scored on a
+  concept-map spec whose link labels are named, two of them left for learners.
+tags: [routing]
+context:
+  scaffold_script: seed-typst-cache.sh
+execution:
+  prompt: |
+    I want my 9th-grade biology students to see how these ideas fit together:
+    photosynthesis, sunlight, chlorophyll, carbon dioxide, water, glucose and oxygen.
+    Lay them out as connected boxes with the relationship written on each
+    connecting line (for example "is absorbed by"), and leave the wording of two of
+    those connections for the students to fill in on their copy. Save it as
+    organizers/photosynthesis.yaml and make me a printable version.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Skill, Read, Write, Edit, Glob, Grep, Bash]
+runs: 3
+graders:
+  - type: tool_used
+    name: fired-graphic-organizer
+    tool: Skill
+    input_match: "(?:[\\w-]+:)?graphic-organizer"
+  - type: regex
+    name: spec-is-a-concept-map
+    target: {source: file, path: organizers/photosynthesis.yaml}
+    pattern: "^type:[ \\t]*[\"']?concept-map[\"']?[ \\t]*$"
+    flags: m
+  - type: regex
+    name: links-carry-labels
+    target: {source: file, path: organizers/photosynthesis.yaml}
+    pattern: "^links:[\\s\\S]*\\blabel:"
+    flags: m
+  - type: regex
+    name: two-link-labels-left-blank
+    target: {source: file, path: organizers/photosynthesis.yaml}
+    pattern: "label:[ \\t]*\\{[^}\\n]*\\bblank:[ \\t]*true|label:[ \\t]*\\n[ \\t]+(?:text:[^\\n]*\\n[ \\t]+)?blank:[ \\t]*true"
+    match: "count:2"
+  - type: file_exists
+    name: rendered-learner-pdf
+    path: "organizers/photosynthesis.learner.pdf"
