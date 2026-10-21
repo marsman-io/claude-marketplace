@@ -153,8 +153,8 @@ def truthy_assert(text: str) -> bool:
             depth += 1
         elif ch in ")]}":
             depth -= 1
-        elif ch == "=" and depth == 0 and text[i - 1] not in "=!<>" \
-                and text[i + 1:i + 2] not in ("=", ">", "~"):
+        elif ch == "=" and depth == 0 and text[i + 1:i + 2] != "~":
+            # `==`, `!=`, `<=`, `>=` and `=>` never get here: TRUTHY_ASSERT rejects their lines
             return False
         i += 1
     return depth == 0 and not text[:end].rstrip().endswith(("(", "[", "{", "\\"))
