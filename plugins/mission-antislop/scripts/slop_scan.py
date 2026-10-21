@@ -77,7 +77,7 @@ ADDED_RULES = [
      "code", None),
     ("swallowed-error", "high", re.compile(
         r"catch\s*(\([^)]*\))?\s*\{\s*\}"
-        r"|except\b[^:\n]*:\s*(pass|\.\.\.)\s*$"
+        r"|except\b[^:\n]*:\s*(pass|\.\.\.)\s*(#.*)?$"
         r"|\.catch\(\s*(\(\s*\w*\s*\)|\w+)\s*=>\s*(\{\s*\}|null|undefined|void 0|false)\s*\)"
         r"|\.catch\(\s*(noop|_\.noop)?\s*\)"),
      "code", None),
