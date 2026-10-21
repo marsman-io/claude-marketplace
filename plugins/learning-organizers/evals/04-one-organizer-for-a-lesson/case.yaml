@@ -1,0 +1,37 @@
+schema_version: "1.0"
+name: one-organizer-for-a-lesson
+description: >-
+  C2(d) borderline: the request mentions a lesson but asks for ONE organizer.
+  lesson-kit says "NOT for one organizer (use graphic-organizer)", so the outcome
+  is a kwl-chart spec, not a handout set.
+tags: [routing]
+context:
+  scaffold_script: seed-typst-cache.sh
+execution:
+  prompt: |
+    For tomorrow's lesson on volcanoes (7th grade) I only need one thing: a K-W-L
+    chart the students fill in at the start and end of the lesson. Leave it empty
+    for them. Save it as organizers/volcanoes.yaml and make it printable.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Skill, Read, Write, Edit, Glob, Grep, Bash]
+runs: 3
+graders:
+  - type: tool_used
+    name: fired-graphic-organizer
+    tool: Skill
+    input_match: "(?:[\\w-]+:)?graphic-organizer"
+  - type: regex
+    name: spec-is-a-kwl-chart
+    target: {source: file, path: organizers/volcanoes.yaml}
+    pattern: "^type:[ \\t]*[\"']?kwl-chart[\"']?[ \\t]*$"
+    flags: m
+  - type: regex
+    name: spec-is-not-a-handout-set
+    target: {source: file, path: organizers/volcanoes.yaml}
+    pattern: "^type:[ \\t]*[\"']?handout"
+    flags: m
+    match: not_contains
+  - type: file_exists
+    name: rendered-learner-pdf
+    path: "organizers/volcanoes.learner.pdf"

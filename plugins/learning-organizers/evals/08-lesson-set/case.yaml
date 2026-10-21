@@ -1,0 +1,50 @@
+schema_version: "1.0"
+name: lesson-set
+description: >-
+  C2(d) borderline, the other way: the request names organizer types (an
+  anticipation guide, notes, an exit checklist) but wants them as one lesson's
+  set. graphic-organizer says "NOT for a whole lesson's set of handouts (use
+  lesson-kit)", so the outcome is one handout spec, not three separate files.
+tags: [routing, kit]
+context:
+  scaffold_script: seed-typst-cache.sh
+execution:
+  prompt: |
+    I'm teaching adult first-aid volunteers how to treat a minor burn (outcome:
+    participants can list and order the steps for a minor burn). The steps: cool
+    the burn under cool running water for 20 minutes; remove rings or tight items
+    nearby; cover loosely with cling film or a clean non-fluffy dressing; never use
+    ice, butter or creams; get medical help if the burn is larger than the
+    patient's hand, on the face, or blistered. I want an anticipation guide to
+    open, fill-in notes during, and a short checklist to close, all as one set of
+    handouts for the session. Save it as organizers/minor-burns.yaml and give me
+    the printable files.
+  max_turns: 40
+  timeout_seconds: 900
+  allowed_tools: [Skill, Read, Write, Edit, Glob, Grep, Bash]
+runs: 3
+graders:
+  - type: tool_used
+    name: fired-lesson-kit
+    tool: Skill
+    input_match: "(?:[\\w-]+:)?lesson-kit"
+  - type: regex
+    name: spec-is-a-handout
+    target: {source: file, path: organizers/minor-burns.yaml}
+    pattern: "^type:[ \\t]*[\"']?handout[\"']?[ \\t]*$"
+    flags: m
+  - type: regex
+    name: holds-anticipation-guide
+    target: {source: file, path: organizers/minor-burns.yaml}
+    pattern: "type:[ \\t]*[\"']?anticipation-guide\\b"
+  - type: regex
+    name: holds-structured-notes
+    target: {source: file, path: organizers/minor-burns.yaml}
+    pattern: "type:[ \\t]*[\"']?structured-notes\\b"
+  - type: regex
+    name: holds-assessment-checklist
+    target: {source: file, path: organizers/minor-burns.yaml}
+    pattern: "type:[ \\t]*[\"']?assessment-checklist\\b"
+  - type: file_exists
+    name: rendered-learner-pdf
+    path: "organizers/minor-burns.learner.pdf"

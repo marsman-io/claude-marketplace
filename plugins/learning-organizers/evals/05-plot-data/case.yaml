@@ -1,0 +1,45 @@
+schema_version: "1.0"
+name: plot-data
+description: >-
+  C3 negative: "plot this data" is a data chart, which graphic-organizer's
+  description excludes ("NOT for data charts or plots"). Neither plugin skill may
+  fire and no organizer spec may be written; the run must still answer with a
+  chart or plotting code.
+tags: [negative]
+context:
+  scaffold_script: seed-typst-cache.sh
+execution:
+  prompt: |
+    Plot this data for my class newsletter: monthly rainfall in millimetres.
+
+    month,rainfall_mm
+    Jan,78
+    Feb,61
+    Mar,55
+    Apr,42
+    May,30
+    Jun,12
+
+    A simple chart is fine.
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools: [Skill, Read, Write, Edit, Glob, Grep, Bash]
+runs: 3
+graders:
+  - type: tool_used
+    name: no-plugin-skill-fired
+    tool: Skill
+    input_match: "(?:[\\w-]+:)?(?:graphic-organizer|lesson-kit)"
+    min: 0
+    max: 0
+    arm: both
+  - type: regex
+    name: no-organizer-spec-written
+    target: trace
+    pattern: "type:[ \\t]*[\"']?(?:t-chart|attribute-matrix|flow-chart|mind-map|concept-map|kwl-chart|anticipation-guide|action-plan|structured-notes|assessment-checklist|rubric|self-questioning|handout)\\b"
+    match: not_contains
+  - type: regex
+    name: answered-with-a-chart
+    target: trace
+    pattern: "matplotlib|pyplot|plotly|ggplot|vega-?lite|chart\\.js|recharts|<svg|<polyline|\"file_path\":\"[^\"]*\\.(?:png|svg|html)\""
+    flags: i
