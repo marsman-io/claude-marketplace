@@ -68,7 +68,7 @@ claude plugin eval plugins/learning-organizers \
 - `--judge-model claude-sonnet-5-5`: the default haiku judge is unreliable.
 - `--trust-plugin`: skips the first-run trust prompt for this folder.
 - `--keep-temp`: keeps each run's sandbox, which the checker and the replay
-  read. Without `--output-dir` results go to `evals/results/` (not committed).
+  read. Without `--output-dir` results go to `evals/results/`, which `evals/.gitignore` keeps out of git.
 
 The kept sandboxes land in `/tmp/e-XXXXXX` on macOS whatever `TMPDIR` says. The
 CLI seals the parts the plugin wrote; it prints, for each, the
@@ -156,5 +156,8 @@ plotting request (no plugin skill fired in 3/3 with-plugin runs).
   this suite's final measurement named a path outside its sandbox and the
   plugin, but nothing here enforces that.
 - Type regexes alone do not separate the arms (the no-plugin agent also writes
-  `type: t-chart` when the prompt says "T-chart"); the structural regexes, the
-  rendered PDF and the checker do.
+  `type: t-chart` when the prompt says "T-chart"); the rendered PDF and the
+  learner-PDF graders do. On `01-t-chart` the structural regexes and the checker
+  do not either: a no-plugin T-chart with made-up keys (`header:`, `points:`)
+  passes `spec-is-a-t-chart` and `spec-has-both-sides`, and the checker reports
+  it `ok` while it draws no answers.
