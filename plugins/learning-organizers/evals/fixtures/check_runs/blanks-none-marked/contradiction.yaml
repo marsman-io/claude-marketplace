@@ -1,0 +1,6 @@
+# Fixture for test_check_runs.py: an item marked blank: true that `blanks: none` still draws for the learner.
+type: t-chart
+title: Reference chart
+blanks: none
+left: {heading: Rent, items: [Lower upfront cost, {text: Landlord repairs, blank: true}]}
+right: {heading: Buy, items: [Builds equity, Owner repairs]}

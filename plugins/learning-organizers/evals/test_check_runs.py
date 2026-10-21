@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Free self-test for check_runs.py over committed fixtures: a good spec passes
 with one `ok` line, a spec that fails `organizer.py check` fails it by name, an
-empty folder and a folder of non-organizer YAML are `nothing-checked`, and the
+empty folder and a folder of non-organizer YAML are `nothing-checked`, an
+explicit `blanks: none` lets the learner copy show unmarked answers but never a
+marked one, and the
 `--expect-hidden` line passes only for an answer the key marks blank. Stdlib
 only, no model calls. Run: PYTHONDONTWRITEBYTECODE=1 python3 evals/test_check_runs.py
 """
@@ -55,6 +57,14 @@ expect(code == 2 and out.startswith("nothing-checked"), "non-organizer YAML only
 
 code, out = run(str(FIX / "good"), str(FIX / "no-specs"))
 expect(code == 0 and "total: 1 spec(s) checked, 0 failed" in out, "good + non-organizer YAML: exit 0, one spec", out)
+
+code, out = run(str(FIX / "blanks-none"))
+expect(code == 0 and "blanks: none, so the learner copy shows every answer" in out,
+       "blanks: none with no marks: exit 0, the learner copy shows every answer by request", out)
+
+code, out = run(str(FIX / "blanks-none-marked"))
+expect(code == 1 and "learner draws marked blank(s) ['Landlord repairs']" in out,
+       "blanks: none does not excuse a marked blank the learner copy draws: exit 1", out)
 
 code, out = run(str(FIX / "good"), "--expect-hidden", "lane closures")
 expect(code == 0 and "ok   learner hides what the prompt named: 'lane closures'" in out,

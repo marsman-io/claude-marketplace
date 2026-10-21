@@ -33,6 +33,7 @@ import organizer  # noqa: E402  (its typst runner and package path)
 
 TYPES = {f.stem for f in organizer.EXAMPLES.glob("*.yaml")}  # what `organizer.py types` lists
 TOP_TYPE = re.compile(r"""^type:[ \t]*["']?([A-Za-z0-9-]+)["']?[ \t]*(?:#.*)?$""", re.M)
+TOP_BLANKS = re.compile(r"""^blanks:[ \t]*["']?(all|marked|none)["']?[ \t]*(?:#.*)?$""", re.M)
 SKIP_DIRS = {".git", "node_modules", "__pycache__"}
 MAX_BYTES = 1_000_000
 
@@ -85,6 +86,16 @@ def drawn(spec: Path, version: str) -> tuple[list[dict] | None, str]:
     return json.loads(r.stdout or "[]"), ""
 
 
+def blanks_setting(spec: Path) -> str | None:
+    """The spec's top-level `blanks:` (all | marked | none), when it sets one."""
+    text = spec.read_text(encoding="utf-8")
+    if spec.suffix.lower() == ".json":
+        b = json.loads(text).get("blanks")
+        return b if b in ("all", "marked", "none") else None
+    m = TOP_BLANKS.search(text)
+    return m.group(1) if m else None
+
+
 def check_spec(spec: Path) -> tuple[list[str], list[dict], list[dict]]:
     """Problems with one spec, and the answers its key and learner versions draw."""
     r = subprocess.run([*CLI, "check", str(spec)], capture_output=True, text=True)
@@ -101,7 +112,9 @@ def check_spec(spec: Path) -> tuple[list[str], list[dict], list[dict]]:
     leaked = [a["text"] for a in learner if a.get("blank")]
     if leaked:
         problems.append(f"learner draws marked blank(s) {leaked[:3]}")
-    if not any(a.get("blank") for a in key) and learner:
+    # With no marks every answer field is blank for the learner, unless the spec
+    # says `blanks: none` (references/spec.md): then the learner copy shows them.
+    if not any(a.get("blank") for a in key) and learner and blanks_setting(spec) != "none":
         problems.append(f"key marks no blank, yet learner draws {[a['text'] for a in learner][:3]}")
     return problems, key, learner
 
@@ -127,8 +140,9 @@ def main(argv: list[str]) -> int:
             print(f"FAIL {spec} ({t}): {'; '.join(problems)}")
         else:
             marked = sum(1 for k in key if k.get("blank"))
+            note = "; blanks: none, so the learner copy shows every answer" if blanks_setting(spec) == "none" else ""
             print(f"ok   {spec} ({t}): check exit 0; key draws {len(key)} answer(s), {marked} marked blank; "
-                  f"learner draws {len(learner)}, none marked")
+                  f"learner draws {len(learner)}, none marked{note}")
 
     expectations_failed = 0
     for text in a.expect_hidden:
