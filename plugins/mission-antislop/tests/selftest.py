@@ -233,6 +233,7 @@ DIFF_HEAD = {
     "src/a7pm.py": "try:\n    run()\nexcept OSError: pass_through()\n",
     "src/a7pn.py": "try:\n    run()\nexcept:  pass  # noqa: E722\n",
     "src/a7pt.py": "try:\n    run()\nexcept Exception: pass  # type: ignore\n",
+    "src/a7pg.py": "try:\n    run()\nexcept OSError: pass  #gone\n",
     "src/a8.sh": "rm -f build.out || true\n",
     "src/a8m.sh": "# avoid || true in CI scripts\n",
     # suppression, any scope
@@ -313,6 +314,9 @@ DIFF_CASES = [
     # first match wins, so it is swallowed-error (suppression on 71d5bc9), never both
     (A(7, "swallowed-error", "high"), "flag", "src/a7pn.py:3", "plain", "review"),
     (A(7, "swallowed-error", "high"), "flag", "src/a7pt.py:3", "plain", "review"),
+    # current behaviour, intent open: see followup F7 (an inline `#` with no space after it
+    # is not seen as a comment, so the line stays high; 71d5bc9 reported nothing here)
+    (A(7, "swallowed-error", "high"), "flag", "src/a7pg.py:3", "plain", None),
     (A(8, "swallowed-error", "review"), "flag", "src/a8.sh:1", "plain", None),
     (A(8, "swallowed-error", "review"), "miss", "src/a8m.sh:1", "plain", None),
     (A(9, "suppression", "review"), "flag", "src/a9.ts:1", "plain", None),
