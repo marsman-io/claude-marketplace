@@ -7,6 +7,7 @@ inline block. Stdlib only. Run: python3 tests/selftest.py
 """
 from __future__ import annotations
 
+import copy
 import glob
 import json
 import shutil
@@ -54,6 +55,7 @@ with tempfile.TemporaryDirectory() as tmp:
     for ex in examples:
         r = run("check", str(ex))
         expect(r.returncode == 0, f"check {ex.name}")
+        expect("warning" not in r.stdout, f"check {ex.name} gives no layout warning")
         r = run("render", str(ex), "--format", "pdf,png", "--ppi", "40", "--out-dir", str(out))
         files = r.stdout.split()
         expect(r.returncode == 0 and len(files) == 4 and all(Path(f).stat().st_size > 0 for f in files),
@@ -73,6 +75,74 @@ with tempfile.TemporaryDirectory() as tmp:
         expect(r.returncode == 1 and want in r.stdout, f"refuse {bad.name}: {want!r}")
         r = run("render", str(bad), "--out-dir", str(out))
         expect(r.returncode == 1, f"render refuses {bad.name}")
+
+    # Layout geometry: every graph example and every spec in tests/layout/, in
+    # both versions, draws no node or label over another, no edge through a
+    # node other than its ends and no edge through another edge's label. The
+    # records must match the spec (one box per node and drawn label, one path
+    # per edge, every box with area), or the geometry was not read. A spec
+    # whose first line is `# expect-collision: <pair>` is deliberately dense:
+    # it must draw that collision, and check, render and inline must say so.
+    layouts = [ex for ex in examples if ex.stem in organizer.GRAPHS] + sorted((ROOT / "tests" / "layout").glob("*.yaml"))
+    reference = None
+    for spec in layouts:
+        first = spec.read_text(encoding="utf-8").splitlines()[0]
+        dense = first.removeprefix("# expect-collision:").strip() if first.startswith("# expect-collision:") else None
+        if dense:
+            line = f"warning (key, learner): {dense}"
+            r = run("check", str(spec))
+            expect(r.returncode == 0 and f"  {line}\n" in r.stdout, f"check {spec.name} warns: {line!r}")
+            r = run("render", str(spec), "--format", "png", "--version", "key", "--ppi", "40", "--out-dir", str(out))
+            expect(r.returncode == 0 and line in r.stderr and Path(r.stdout.strip()).is_file(),
+                   f"render {spec.name} draws it and warns the same")
+            r = run("inline", str(spec))
+            expect(r.returncode == 0 and r.stdout.startswith("```typst") and line in r.stderr,
+                   f"inline {spec.name} prints the block and warns the same")
+        for version in ("key", "learner"):
+            try:
+                data, records = organizer.read_layout(spec, version)
+            except organizer.GeometryError as e:
+                expect(False, f"geometry {spec.name} ({version}) is read: {e}")
+                continue
+            graphs = organizer.assemble(records)
+            want = organizer.expected_graphs(data)
+            errs = organizer.validate_geometry(graphs, want)
+            got = [sum(1 for g in graphs.values() for el in g.values() if el["kind"] == k) for k in ("node", "label", "edge")]
+            need = [sum(w[k] for w in want) for k in ("node", "label", "edge")]
+            expect(bool(want) and not errs, f"geometry {spec.name} ({version}): {got[0]} node boxes + {got[1]} label boxes + "
+                   f"{got[2]} edge paths recorded, the spec draws {' + '.join(map(str, need))}, every box with area {errs[:2]}")
+            hits = organizer.collisions(graphs)
+            if dense:
+                expect(dense in hits, f"layout {spec.name} ({version}) draws the collision it is built for {hits}")
+            else:
+                expect(not hits, f"layout {spec.name} ({version}) draws no collision {hits}")
+            if spec.name == "concept-map.yaml" and version == "key":
+                reference = (graphs, want)
+
+    # The check itself, fed a real render's geometry: two concept boxes moved
+    # onto each other are reported; no records, a missing record or boxes
+    # without area are never a clean layout.
+    if reference:
+        graphs, want = reference
+        moved = copy.deepcopy(graphs)
+        g = next(iter(moved.values()))
+        by_id = {el["id"]: el for el in g.values()}
+        by_id["concept anchor"]["box"] = tuple(v + 6 for v in by_id["concept duct"]["box"])
+        hits = organizer.collisions(moved)
+        expect({"concept anchor overlaps concept duct", "concept duct overlaps concept anchor"} & set(hits),
+               f"two concept boxes forced to overlap are reported {hits[:3]}")
+        expect(bool(organizer.validate_geometry({}, want)), "no geometry records is not a clean layout")
+        fewer = copy.deepcopy(graphs)
+        g = next(iter(fewer.values()))
+        del g[next(k for k, el in g.items() if el["kind"] == "label")]
+        expect(bool(organizer.validate_geometry(fewer, want)), "a missing label record is not a clean layout")
+        flat = copy.deepcopy(graphs)
+        for el in next(iter(flat.values())).values():
+            if "box" in el:
+                el["box"] = (0.0, 0.0, 0.0, 0.0)
+        expect(bool(organizer.validate_geometry(flat, want)), "boxes without area are not a clean layout")
+    else:
+        expect(False, "the concept-map example's geometry was read for the check's own tests")
 
     spec = out / "t.yaml"
     shutil.copyfile(ROOT / "examples" / "t-chart.yaml", spec)

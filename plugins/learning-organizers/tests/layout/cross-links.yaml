@@ -1,0 +1,21 @@
+# Concept map whose cross-links run across a row and back up the tree: each must bend around the concepts between its ends.
+type: concept-map
+title: Cross-links across a row
+concepts:
+  - {id: water, text: Water cycle}
+  - {id: evap, text: Evaporation}
+  - {id: cond, text: Condensation}
+  - {id: prec, text: Precipitation}
+  - {id: sun, text: Solar energy}
+  - {id: cloud, text: Clouds}
+  - {id: runoff, text: Runoff}
+links:
+  - {from: water, to: evap, label: starts with}
+  - {from: water, to: cond, label: continues with}
+  - {from: water, to: prec, label: ends with}
+  - {from: evap, to: sun, label: is driven by}
+  - {from: cond, to: cloud, label: forms}
+  - {from: prec, to: runoff, label: becomes}
+  - {from: evap, to: prec, label: balances, cross: true}
+  - {from: runoff, to: sun, label: is warmed by, cross: true}
+  - {from: cloud, to: water, label: feeds back into, cross: true}

@@ -1,0 +1,18 @@
+# Concept map with one wide fan of long linking phrases: every label needs its own clear place.
+type: concept-map
+title: A wide fan of long linking phrases
+concepts:
+  - {id: root, text: Safety management system}
+  - {id: a, text: Policy}
+  - {id: b, text: Risk management}
+  - {id: c, text: Assurance}
+  - {id: d, text: Promotion}
+  - {id: e, text: Training}
+  - {id: f, text: Reporting}
+links:
+  - {from: root, to: a, label: is anchored by a written}
+  - {from: root, to: b, label: identifies and controls hazards through}
+  - {from: root, to: c, label: checks itself with}
+  - {from: root, to: d, label: spreads the culture by}
+  - {from: root, to: e, label: builds competence through}
+  - {from: root, to: f, label: learns from near misses via}

@@ -1,0 +1,13 @@
+# Mind map whose texts wrap to several lines: every box needs a row as tall as it is.
+type: mind-map
+title: Long branch texts
+center: Preparing a site for a concrete pour in cold weather
+branches:
+  - text: Ground and formwork preparation before the pour
+    children: [Thaw frozen subgrade with blankets or heaters, Remove ice and snow from forms and reinforcement, Check that formwork is braced for wind loads]
+  - text: Mix design
+    children: [Accelerating admixtures, Heated water and aggregates, Lower water to cement ratio]
+  - text: Protection and curing after placement in low temperatures
+    children: [Insulated blankets, Heated enclosures, Monitor concrete temperature with embedded sensors for several days]
+  - text: Testing
+    children: [Field-cured cylinders, Maturity method]

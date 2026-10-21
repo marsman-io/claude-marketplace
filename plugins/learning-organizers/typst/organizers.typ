@@ -256,6 +256,387 @@
   (rank: rank, x: x)
 }
 
+// ---------- geometry: what a graph actually drew ----------
+// Concept maps, flow charts and mind maps leave `metadata(…)
+// <organizer-geometry>` records of what they drew: the two corners of every
+// node and label box, measured where they land on the page
+// (`here().position()`, in pt, y down, so fletcher's grid, CeTZ's anchors and
+// `fit`'s scaling are all in them); every edge as points sampled along the
+// curve it was drawn as, in canvas units (`pts`); and three `frame` marks per
+// graph, the canvas points (0, 0), (unit, 0) and (0, unit) as measured on the
+// page, which map those points into the same frame. `key` names the element
+// within its graph (`graph` counts graphs in the document). An edge's `ends`
+// are its two node keys, a label's is its edge's key; a node's `shape` says
+// whether its outline is the box or the diamond inscribed in it. organizer.py
+// assembles and checks them (`check`; tests/selftest.py).
+#let _graph = counter("organizer-graph")
+
+#let _geo(key, kind, id, part, ends: none, shape: "box", pts: none, unit: none) = context {
+  let p = here().position()
+  [#metadata((graph: _graph.get().first(), key: key, kind: kind, id: id, part: part, ends: ends,
+    shape: shape, pts: pts, unit: unit, page: p.page, x: p.x.pt(), y: p.y.pt())) <organizer-geometry>]
+}
+
+// A zero-size mark for CeTZ `content` at a canvas point.
+#let _geo-pt(..args) = box(width: 0pt, height: 0pt, _geo(..args))
+
+// The frame marks of a CeTZ canvas whose coordinates are numbers of `unit`.
+#let _geo-frame(content, unit) = {
+  let zero = if type(unit) == length { 0pt } else { 0 }
+  for (part, pt) in (("o", (zero, zero)), ("x", (unit, zero)), ("y", (zero, unit))) {
+    content(pt, _geo-pt("frame", "frame", "frame", part, unit: if type(unit) == length { unit.pt() } else { unit }))
+  }
+}
+
+// The box `body` occupies, by its top-left and bottom-right corners.
+#let _tracked(key, kind, id, body, ends: none) = box({
+  place(top + left, _geo(key, kind, id, "tl", ends: ends))
+  place(bottom + right, _geo(key, kind, id, "br", ends: ends))
+  body
+})
+
+// Samples of a drawn fletcher edge: a straight line's two ends, a polyline's
+// corners rounded as fletcher rounds them (draw-edge-polyline), an arc's
+// points every few degrees.
+#let _edge-samples(edge, kind, verts) = {
+  if kind == "poly" and edge.corner-radius != none {
+    let θs = range(verts.len() - 1).map(i => fletcher.utils.angle-between(verts.at(i), verts.at(i + 1)))
+    let pts = (verts.first(),)
+    for i in range(1, verts.len() - 1) {
+      let Δθ = fletcher.utils.wrap-angle-180(θs.at(i) - θs.at(i - 1))
+      let dir = if Δθ > 0deg { 1 } else { -1 }
+      let r = edge.corner-radius * (1 + calc.cos(Δθ))
+      if edge.extrude != () { r += if dir > 0 { calc.max(..edge.extrude) } else { -calc.min(..edge.extrude) } }
+      r *= dir
+      if calc.abs(Δθ) > 179deg or calc.abs(Δθ) <= 1deg { pts.push(verts.at(i)); continue }
+      let c = fletcher.cetz.vector.add(verts.at(i), fletcher.utils.vector-polar(r / calc.cos(Δθ / 2), θs.at(i - 1) + Δθ / 2 + 90deg))
+      let n = 12
+      for j in range(n + 1) {
+        pts.push(fletcher.cetz.vector.add(c, fletcher.utils.vector-polar(r, θs.at(i - 1) - 90deg + Δθ * j / n)))
+      }
+    }
+    pts + (verts.last(),)
+  } else if kind == "arc" {
+    let (from, to) = verts
+    let (center, radius, start, stop) = fletcher.utils.get-arc-connecting-points(from, to, edge.bend)
+    let n = 48
+    range(n + 1).map(j => {
+      let a = start + (stop - start) * j / n
+      (center.at(0) + radius * calc.cos(a), center.at(1) + radius * calc.sin(a))
+    })
+  } else { verts }
+}
+
+// ---------- settling a graph's layout ----------
+// Run inside fletcher's `render`, on its resolved coordinates (pt, CeTZ's y
+// up), before anything is drawn: give every bent edge (a cross-link, a back
+// edge, a straight edge that would run through a node) the first bend that
+// clears the nodes between its ends, then put every label at the first place
+// along its edge (position × side) that is clear of the nodes, the labels
+// already placed and the other edges. When something stays blocked, or a
+// straight edge could only clear the nodes by bending, the ranks move apart in
+// steps and both choices run again; the first clean step wins, else the one
+// with the fewest collisions, then the fewest bent straight edges. This models
+// fletcher's own drawing (anchors, defocus, arcs, label anchors); the measured
+// geometry (`<organizer-geometry>`) is what checks the result.
+
+#let _clearance = 3.0 // pt kept free around boxes and edges while settling (the check's tolerance is 1pt)
+#let _rank-step = 12.0 // pt added between neighbouring ranks per widening step
+#let _rank-steps = 8
+
+#let _xy(v) = (v.at(0).pt(), v.at(1).pt())
+#let _ang(a, b) = calc.atan2(b.at(0) - a.at(0), b.at(1) - a.at(1))
+#let _at(p, θ, r) = (p.at(0) + r * calc.cos(θ), p.at(1) + r * calc.sin(θ))
+
+// A node's outline as a convex polygon (fletcher's shapes with their defaults).
+#let _outline(node) = {
+  let (cx, cy) = _xy(node.pos.xyz)
+  let (w, h) = node.size.map(v => v.pt() / 2)
+  if node.shape == fletcher.shapes.diamond {
+    ((cx - 1.5 * w, cy), (cx, cy - 1.5 * h), (cx + 1.5 * w, cy), (cx, cy + 1.5 * h))
+  } else if node.shape == fletcher.shapes.parallelogram {
+    let d = h * calc.tan(20deg)
+    let x = w + d * 0.8
+    ((cx - x, cy - h), (cx + x - d, cy - h), (cx + x, cy + h), (cx - x + d, cy + h))
+  } else { ((cx - w, cy - h), (cx + w, cy - h), (cx + w, cy + h), (cx - w, cy + h)) }
+}
+
+#let _bbox(p) = {
+  let xs = p.map(q => q.at(0))
+  let ys = p.map(q => q.at(1))
+  (calc.min(..xs), calc.min(..ys), calc.max(..xs), calc.max(..ys))
+}
+
+// Separating axes, as in organizer.py: convex shapes `a` and `b` (a segment
+// is one) come closer than `m` along every edge normal of either.
+#let _hit(a, b, m) = {
+  let (ax0, ay0, ax1, ay1) = _bbox(a)
+  let (bx0, by0, bx1, by1) = _bbox(b)
+  if ax0 - bx1 >= m or bx0 - ax1 >= m or ay0 - by1 >= m or by0 - ay1 >= m { return false }
+  for poly in (a, b) {
+    let n = poly.len()
+    for i in range(n) {
+      let (px, py) = poly.at(i)
+      let (qx, qy) = poly.at(calc.rem(i + 1, n))
+      let (nx, ny) = (qy - py, px - qx)
+      let len = calc.sqrt(nx * nx + ny * ny)
+      if len == 0 { continue }
+      let pa = a.map(((x, y)) => (x * nx + y * ny) / len)
+      let pb = b.map(((x, y)) => (x * nx + y * ny) / len)
+      if calc.min(calc.max(..pa) - calc.min(..pb), calc.max(..pb) - calc.min(..pa)) <= -m { return false }
+    }
+  }
+  true
+}
+
+#let _path-hit(path, poly, m) = range(path.len() - 1).any(i => _hit((path.at(i), path.at(i + 1)), poly, m))
+
+// Where a ray from `p` (inside the convex `poly`) at angle θ leaves it.
+#let _exit(p, θ, poly) = {
+  let (dx, dy) = (calc.cos(θ), calc.sin(θ))
+  let best = none
+  let n = poly.len()
+  for i in range(n) {
+    let (ax, ay) = poly.at(i)
+    let (bx, by) = poly.at(calc.rem(i + 1, n))
+    let (ex, ey) = (bx - ax, by - ay)
+    let den = dx * ey - dy * ex
+    if calc.abs(den) < 1e-9 { continue }
+    let (wx, wy) = (ax - p.at(0), ay - p.at(1))
+    let t = (wx * ey - wy * ex) / den
+    let u = (wx * dy - wy * dx) / den
+    if t > 1e-6 and u >= -1e-9 and u <= 1 + 1e-9 and (best == none or t < best) { best = t }
+  }
+  if best == none { p } else { _at(p, θ, best) }
+}
+
+// fletcher's arc through two points (utils.get-arc-connecting-points), in floats.
+#let _arc(a, b, β) = {
+  let (dx, dy) = (b.at(0) - a.at(0), b.at(1) - a.at(1))
+  let k = 0.5 / calc.tan(β)
+  let c = ((a.at(0) + b.at(0)) / 2 + dy * k, (a.at(1) + b.at(1)) / 2 - dx * k)
+  let r = calc.sqrt(calc.pow(b.at(0) - c.at(0), 2) + calc.pow(b.at(1) - c.at(1), 2))
+  let (start, stop) = (_ang(c, a), _ang(c, b))
+  if start < stop and β > 0deg { start += 360deg }
+  if start > stop and β < 0deg { start -= 360deg }
+  (c: c, r: r, start: start, stop: stop)
+}
+
+// The path fletcher draws for an edge (kind, bend, its two nodes), as a polyline.
+#let _model-path(e, n0, n1) = {
+  let vs = e.final-vertices.map(_xy)
+  let (p0, p1) = (_outline(n0), _outline(n1))
+  if e.kind == "arc" {
+    let θ = _ang(vs.first(), vs.last())
+    let a = _exit(vs.first(), θ + e.bend, p0)
+    let b = _exit(vs.last(), θ - e.bend + 180deg, p1)
+    let A = _arc(a, b, e.bend)
+    range(17).map(j => _at(A.c, A.start + (A.stop - A.start) * j / 16, A.r))
+  } else if e.kind == "poly" {
+    let a = _exit(vs.at(0), _ang(vs.at(0), vs.at(1)), p0)
+    let b = _exit(vs.last(), _ang(vs.last(), vs.at(-2)), p1)
+    (a,) + vs.slice(1, -1) + (b,)
+  } else {
+    let θ = _ang(vs.first(), vs.last())
+    let f = fletcher.cetz.vector.add(e.final-vertices.first(), fletcher.defocus-adjustment(n0, θ)).map(v => v.pt())
+    let g = fletcher.cetz.vector.add(e.final-vertices.last(), fletcher.defocus-adjustment(n1, θ + 180deg)).map(v => v.pt())
+    (_exit(f, _ang(f, g), p0), _exit(g, _ang(g, f), p1))
+  }
+}
+
+#let _compass = ((1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1))
+
+// The box fletcher draws a label in (place-edge-label-on-curve), as a polygon.
+#let _label-box(e, path, pos, side, size, sep) = {
+  let (seg, t) = pos
+  let (c, θ) = if e.kind == "arc" {
+    let A = _arc(path.first(), path.last(), e.bend)
+    let a = A.start + (A.stop - A.start) * t
+    (_at(A.c, a, A.r), a + if A.stop > A.start { 90deg } else { -90deg })
+  } else {
+    let (a, b) = (path.at(seg), path.at(seg + 1))
+    ((a.at(0) + (b.at(0) - a.at(0)) * t, a.at(1) + (b.at(1) - a.at(1)) * t), _ang(a, b))
+  }
+  θ = (θ / 360deg - calc.round(θ / 360deg)) * 360deg
+  let side = if side != auto { side } else if e.kind == "arc" { if e.bend > 0deg { left } else { right } }
+    else if calc.abs(θ) < 90deg { left } else { right }
+  let (w, h) = size
+  let mid = if side == center { c } else {
+    let θn = θ + if side == right { 90deg } else { -90deg }
+    let q = _at(c, θn, -sep)
+    let (ox, oy) = _compass.at(int(calc.round(calc.rem(8 * θn / 360deg, 8))))
+    (q.at(0) - ox * w / 2, q.at(1) - oy * h / 2)
+  }
+  let (x, y) = mid
+  ((x - w / 2, y - h / 2), (x + w / 2, y - h / 2), (x + w / 2, y + h / 2), (x - w / 2, y + h / 2))
+}
+
+// Settle `nodes` and `edges` (fletcher's resolved dictionaries); `rank` maps a
+// node name to its rank, `axis` is the rank direction (0 x, 1 y).
+#let _settle(nodes, edges, rank, axis) = {
+  let at = (:)
+  for (i, n) in nodes.enumerate() { at.insert(str(n.name), i) }
+  let ends = edges.map(e => (e.vertices.first(), e.vertices.last()).map(v =>
+    if type(v) == label { at.at(str(v), default: none) }))
+  let sizes = edges.map(e => if e.label != none {
+    let m = measure(box({ set text(e.label-size); (e.label-wrapper)(e) }))
+    (m.width.pt(), m.height.pt())
+  })
+  // rank centres along the rank axis, in drawing order
+  let centre = (:)
+  for n in nodes {
+    let r = rank.at(str(n.name), default: none)
+    if r != none { centre.insert(str(r), _xy(n.pos.xyz).at(axis)) }
+  }
+  let order = centre.keys().map(int).sorted().map(r => centre.at(str(r)))
+  let dir = if order.len() > 1 and order.at(1) < order.at(0) { -1 } else { 1 }
+  let moved(v, extra) = {
+    if order.len() < 2 { return v }
+    let k = range(order.len()).sorted(key: k => calc.abs(order.at(k) - v.at(axis).pt())).first()
+    let v = v
+    v.at(axis) += dir * extra * k * 1pt
+    v
+  }
+  let best = none
+  for step in range(_rank-steps + 1) {
+    let extra = step * _rank-step
+    let ns = nodes.map(n => { n.pos.xyz = moved(n.pos.xyz, extra); n })
+    let polys = ns.map(_outline)
+    let es = edges.map(e => { e.final-vertices = e.final-vertices.map(v => moved(v, extra)); e })
+    let cost = 0
+    let bent = 0
+    let paths = ()
+    for (k, e) in es.enumerate() {
+      let (i, j) = ends.at(k)
+      if i == none or j == none or i == j { paths.push(e.final-vertices.map(_xy)); continue }
+      let others = range(ns.len()).filter(x => x != i and x != j)
+      let blocked(p) = others.filter(x => _path-hit(p, polys.at(x), _clearance)).len()
+      let p = _model-path(e, ns.at(i), ns.at(j))
+      let c = blocked(p)
+      if e.kind == "arc" or (e.kind == "line" and c > 0) {
+        let b0 = if e.kind == "arc" { e.bend } else { 0deg }
+        let tries = (b0, -b0) + (35, -35, 20, -20, 50, -50, 65, -65, 80, -80, 0).map(d => d * 1deg)
+        let found = none
+        for β in tries.dedup() {
+          let e2 = e + (kind: if β == 0deg { "line" } else { "arc" }, bend: β)
+          let p2 = _model-path(e2, ns.at(i), ns.at(j))
+          let c2 = blocked(p2)
+          if found == none or c2 < found.at(2) { found = (e2, p2, c2) }
+          if c2 == 0 { break }
+        }
+        if e.kind == "line" and found.at(0).kind == "arc" { bent += 1 }
+        (e, p, c) = found
+        es.at(k) = e
+      }
+      paths.push(p)
+      cost += c
+    }
+    let placed = ()
+    for (k, e) in es.enumerate() {
+      let (i, j) = ends.at(k)
+      if e.label == none or i == none or j == none { continue }
+      let path = paths.at(k)
+      let segs = path.len() - 1
+      let sep = e.label-sep.pt()
+      let own = (e.label-pos.segment, fletcher.utils.relative-to-float(e.label-pos.position))
+      let cands = ((own, e.label-side),)
+      let ts = (0.5, 0.35, 0.65, 0.25, 0.75, 0.2, 0.8, 0.15, 0.85)
+      let segments = if e.kind == "poly" { (own.at(0),) + range(segs).filter(s => s != own.at(0)) } else { (0,) }
+      for s in segments {
+        for t in ts {
+          for side in (e.label-side, center, left, right).dedup() {
+            cands.push(((s, t), side))
+          }
+        }
+      }
+      let score(box) = (polys.filter(q => _hit(box, q, _clearance)).len()
+        + placed.filter(q => _hit(box, q, _clearance)).len()
+        + range(paths.len()).filter(x => x != k and _path-hit(paths.at(x), box, _clearance)).len())
+      let found = none
+      for (pos, side) in cands {
+        let box = _label-box(e, path, pos, side, sizes.at(k), if side == center { 0 } else { sep })
+        let c = score(box)
+        if found == none or c < found.at(2) { found = (pos, side, c, box) }
+        if c == 0 { break }
+      }
+      let (pos, side, c, box) = found
+      placed.push(box)
+      cost += c
+      es.at(k) = e + (label-pos: (segment: pos.at(0), position: pos.at(1) * 100%), label-side: side,
+        label-anchor: if side == center { "center" } else { e.label-anchor },
+        label-sep: if side == center { 0pt } else { e.label-sep })
+    }
+    if best == none or (cost, bent) < best.at(2) { best = (ns, es, (cost, bent)) }
+    if cost == 0 and bent == 0 { break }
+  }
+  (best.at(0), best.at(1))
+}
+
+// fletcher's `render`: settle the layout (above), then draw it with fletcher's
+// own draw-anchored-* steps plus geometry marks: each node outline's bounding
+// box from CeTZ anchors, and each edge sampled between the anchors it was
+// drawn to. `nkeys` maps a node name to (key, id, rank); `ekeys` lists (key,
+// id, from, to) in edge order; `axis` is the rank direction (0 x, 1 y).
+#let _geo-render(nkeys, ekeys, axis: 1) = (grid, nodes, edges, options) => {
+  let (nodes, edges) = _settle(nodes, edges, nkeys.pairs().map(((k, v)) => (k, v.at(2))).to-dict(), axis)
+  fletcher.cetz.canvas({
+  import fletcher.cetz.draw: *
+  let ok = edges.len() == ekeys.len()
+  for (k, edge) in edges.enumerate() {
+    let ns = fletcher.find-nodes-for-edge(grid, nodes, edge)
+    let mark(verts) = if ok {
+      let (key, id, a, b) = ekeys.at(k)
+      let pts = _edge-samples(edge, edge.kind, verts).map(q => q.map(v => v.pt()))
+      content(verts.first(), _geo-pt(key, "edge", id, "path", ends: (a, b), pts: pts))
+    }
+    let outlines(i, ray) = { group(ns.at(i).map(fletcher.draw-node-outline).join()); ray }
+    let obj = if edge.kind == "line" {
+      let (from, to) = edge.final-vertices
+      let θ = fletcher.utils.angle-between(from, to) + 90deg
+      if ns.at(0).len() == 1 { from = fletcher.cetz.vector.add(from, fletcher.defocus-adjustment(ns.at(0).at(0), θ - 90deg)) }
+      if ns.at(1).len() == 1 { to = fletcher.cetz.vector.add(to, fletcher.defocus-adjustment(ns.at(1).at(0), θ + 90deg)) }
+      let dummy = line(from, to)
+      fletcher.find-anchor-pair((outlines(0, dummy), outlines(1, dummy)), (from, to), anchors => {
+        (edge.post)(fletcher.draw-edge-line(edge + (final-vertices: anchors)))
+        mark(anchors)
+      })
+    } else if edge.kind == "arc" {
+      let (from, to) = edge.final-vertices
+      let θ = fletcher.utils.angle-between(from, to)
+      let rays = ((from, θ + edge.bend), (to, θ - edge.bend + 180deg)).map(((p, φ)) =>
+        line(p, fletcher.cetz.vector.add(p, fletcher.utils.vector-polar(10cm, φ))))
+      fletcher.find-anchor-pair((outlines(0, rays.at(0)), outlines(1, rays.at(1))), (from, to), anchors => {
+        (edge.post)(fletcher.draw-edge-arc(edge + (final-vertices: anchors)))
+        mark(anchors)
+      })
+    } else {
+      let vs = edge.final-vertices
+      let ends = (line(..vs.slice(0, 2)), line(..vs.slice(-2)))
+      fletcher.find-anchor-pair((outlines(0, ends.at(0)), outlines(1, ends.at(1))), (vs.first(), vs.last()), anchors => {
+        let e = edge
+        e.final-vertices.at(0) = anchors.at(0)
+        e.final-vertices.at(-1) = anchors.at(1)
+        (edge.post)(fletcher.draw-edge-polyline(e))
+        mark(e.final-vertices)
+      })
+    }
+    if edge.layer != 0 { on-layer(edge.layer, obj) } else { obj }
+  }
+  _geo-frame(content, 100pt)
+  for (i, node) in nodes.enumerate() {
+    fletcher.draw-node(node)
+    let nk = nkeys.at(str(node.name), default: none)
+    if nk != none {
+      let g = "_geo-node-" + str(i)
+      hide(group(name: g, { translate(node.pos.xyz); (node.shape)(node, node.outset) }))
+      let shape = if node.shape == fletcher.shapes.diamond { "diamond" } else { "box" }
+      content(g + ".north-west", _geo-pt(nk.at(0), "node", nk.at(1), "tl", shape: shape))
+      content(g + ".south-east", _geo-pt(nk.at(0), "node", nk.at(1), "br", shape: shape))
+    }
+  }
+  })
+}
+
 // ---------- validation ----------
 
 #let _ids(list, what) = {
@@ -502,7 +883,8 @@
       stroke: if hid { (paint: T.muted, thickness: 0.8pt, dash: "dashed") } else { 0.9pt + col })
   })
   let at(c, r) = if right { (r, c) } else { (c, r) }
-  let es = edges.map(e => {
+  let eid(e) = "arrow " + s(steps.at(e.from).id) + "→" + s(steps.at(e.to).id) + if e.label != none { " " + repr(s(e.label)) } else { "" }
+  let es = edges.enumerate().map(((k, e)) => {
     let back = e.to <= e.from
     let (r0, r1) = (L.rank.at(e.from), L.rank.at(e.to))
     // an edge that skips ranks goes around the nodes between, on its side
@@ -517,12 +899,19 @@
     } else { () }
     let args = (label("n" + str(e.from)),) + via + (label("n" + str(e.to)), "-|>")
     if e.label != none { args.push(text(size: 0.82em, s(e.label))) }
-    edge(..args, bend: if back { -50deg } else { 0deg }, label-fill: T.bg)
+    edge(..args, bend: if back { -50deg } else { 0deg }, label-fill: T.bg,
+      label-wrapper: w => _tracked("l" + str(k), "label", "label " + repr(s(e.label)) + " on " + s(steps.at(e.from).id) + "→" + s(steps.at(e.to).id),
+        box(w.label, inset: .2em, radius: .2em, fill: w.label-fill), ends: "e" + str(k)))
   })
+  _graph.step()
   fit(T, height: true, align(center, diagram(
     spacing: if right { (10mm, 4mm) } else { (3mm, 9mm) },
     node-inset: 6pt, node-corner-radius: 3pt,
     edge-stroke: 0.8pt + T.fg, node-stroke: 0.8pt + T.fg,
+    render: _geo-render(
+      steps.enumerate().map(((i, st)) => ("n" + str(i), ("n" + str(i), "step " + s(st.id), L.rank.at(i)))).to-dict(),
+      edges.enumerate().map(((k, e)) => ("e" + str(k), eid(e), "n" + str(e.from), "n" + str(e.to))),
+      axis: if right { 0 } else { 1 }),
     ..nodes, ..es,
   )))
 }
@@ -549,6 +938,10 @@
       fill: if hid { none } else { tint(col, pct: if L.rank.at(i) == 0 { 70% } else { 86% }) },
       stroke: if hid { (paint: T.muted, thickness: 0.8pt, dash: "dashed") } else { 0.9pt + col })
   })
+  let lid(l) = "link " + s(cs.at(l.from).id) + "→" + s(cs.at(l.to).id) + {
+    let lab = as-item(l.label)
+    if lab != none { " " + repr(lab.text) } else { "" }
+  }
   let es = links.enumerate().map(((k, l)) => {
     // stagger labels of neighbouring links from one concept so a fan stays legible
     let sib = links.slice(0, k).filter(o => o.from == l.from and not o.cross).len()
@@ -559,31 +952,45 @@
         else { text(size: 0.82em, style: "italic", answer(ctx, lab)) })
     }
     edge(..args, label-fill: T.bg, label-pos: if l.cross { 0.3 } else if calc.odd(sib) { 0.74 } else { 0.5 }, bend: if l.cross { 35deg } else if l.to <= l.from { -40deg } else { 0deg },
-      stroke: if l.cross { (paint: T.muted, thickness: 0.8pt, dash: "dashed") } else { 0.8pt + T.fg })
+      stroke: if l.cross { (paint: T.muted, thickness: 0.8pt, dash: "dashed") } else { 0.8pt + T.fg },
+      label-wrapper: w => _tracked("l" + str(k), "label", "label " + repr(s(lab.text)) + " on " + s(cs.at(l.from).id) + "→" + s(cs.at(l.to).id),
+        box(w.label, inset: .2em, radius: .2em, fill: w.label-fill), ends: "e" + str(k)))
   })
   let fq = spec.at("focus-question", default: none)
   if fq != none {
     block(below: 0.8em, inset: 7pt, radius: 3pt, fill: tint(T.accent, pct: 90%),
       [#text(weight: "bold", "Focus question: ")#s(fq)])
   }
+  _graph.step()
   fit(T, height: true, align(center, diagram(
-    spacing: (4mm, 17mm), node-inset: 6pt, edge-stroke: 0.8pt + T.fg, ..nodes, ..es)))
+    spacing: (4mm, 17mm), node-inset: 6pt, edge-stroke: 0.8pt + T.fg,
+    render: _geo-render(
+      cs.enumerate().map(((i, c)) => ("c" + str(i), ("c" + str(i), "concept " + s(c.id), L.rank.at(i)))).to-dict(),
+      links.enumerate().map(((k, l)) => ("e" + str(k), lid(l), "c" + str(l.from), "c" + str(l.to)))),
+    ..nodes, ..es)))
 }
 
 // Mind map: two-sided tree around the centre, branch colour from the palette.
+// Every node gets a slot at least `row-height` tall and tall enough for its
+// box as drawn (a wrapped line makes it taller); a branch spans its own slot
+// or its children's, whichever is more, and sits centred on that span.
 #let _mm-kids(b) = if type(b) == dictionary { as-array(b.at("children", default: ())) } else { () }
 #let _mm-leaves(b) = {
   let k = _mm-kids(b)
   if k.len() == 0 { 1 } else { k.map(_mm-leaves).sum() }
 }
-#let _mm-place(b, depth, side, y0, color, parent, path) = {
+#let _mm-span(b, depth, slot) = calc.max(slot(b, depth),
+  _mm-kids(b).map(c => _mm-span(c, depth + 1, slot)).sum(default: 0))
+#let _mm-place(b, depth, side, y0, color, parent, path, slot) = {
+  let span = _mm-span(b, depth, slot)
+  let kids = _mm-kids(b)
   let out = ()
-  let y = y0
-  for (i, c) in _mm-kids(b).enumerate() {
-    out += _mm-place(c, depth + 1, side, y, color, path, path + "." + str(i))
-    y += _mm-leaves(c)
+  let y = y0 + (span - kids.map(c => _mm-span(c, depth + 1, slot)).sum(default: 0)) / 2
+  for (i, c) in kids.enumerate() {
+    out += _mm-place(c, depth + 1, side, y, color, path, path + "." + str(i), slot)
+    y += _mm-span(c, depth + 1, slot)
   }
-  out.push((id: path, depth: depth, side: side, y: y0 + _mm-leaves(b) / 2,
+  out.push((id: path, depth: depth, side: side, y: y0 + span / 2,
     item: as-item(b), color: color, parent: parent))
   out
 }
@@ -599,56 +1006,75 @@
     side-of.push(if acc < total / 2 or br.len() == 1 { 1 } else { -1 })
     acc += _mm-leaves(b)
   }
-  let nodes = ()
-  let slots = (:)
-  for sd in (1, -1) {
-    let y = 0
-    for (i, b) in br.enumerate() {
-      if side-of.at(i) != sd { continue }
-      nodes += _mm-place(b, 1, sd, y, T.palette.at(calc.rem(i, T.palette.len())), "root", "b" + str(i))
-      y += _mm-leaves(b)
-    }
-    slots.insert(str(sd), y)
-  }
   let cw = 3.8
   let bw = spec.at("node-width", default: 3.4)
   let dx = bw + 0.9
   let h = spec.at("row-height", default: 1.15)
+  let gap = 0.3
   let xs(d) = cw / 2 + 0.7 + (d - 1) * dx
-  let pos = (:)
-  for nd in nodes {
-    let L = slots.at(str(nd.side))
-    pos.insert(nd.id, (x: nd.side * xs(nd.depth), y: -(nd.y - L / 2) * h, side: nd.side))
+  let node-box(item, depth, side, color) = {
+    let hid = hidden(ctx, item)
+    box(width: bw * 1cm, inset: 5pt, radius: 4pt,
+      fill: if hid or depth > 1 { none } else { tint(color, pct: 80%) },
+      stroke: if hid { (paint: T.muted, thickness: 0.7pt, dash: "dashed") }
+        else if depth == 1 { 0.9pt + color } else { (bottom: 0.9pt + color) },
+      align(if side == 1 { left } else { right },
+        if hid { box(height: 1.1em) }
+        else if depth == 1 { text(weight: "bold", answer(ctx, item)) }
+        else { text(size: 0.9em, answer(ctx, item)) }))
   }
   let hub = as-item(spec.center)
-  fit(T, height: true, align(center, cetz.canvas(length: 1cm, {
-    import cetz.draw: *
-    for nd in nodes {
-      let p = pos.at(nd.id)
-      let from = if nd.parent == "root" { (p.side * cw / 2, 0) } else {
-        let q = pos.at(nd.parent)
-        (q.x + q.side * bw, q.y)
+  let mid(nd) = "branch " + nd.id + " " + repr(nd.item.text)
+  _graph.step()
+  context {
+    let slot(b, depth) = calc.max(h, measure(node-box(as-item(b), depth, 1, T.fg)).height / 1cm + gap)
+    let nodes = ()
+    let spans = (:)
+    for sd in (1, -1) {
+      let y = 0
+      for (i, b) in br.enumerate() {
+        if side-of.at(i) != sd { continue }
+        nodes += _mm-place(b, 1, sd, y, T.palette.at(calc.rem(i, T.palette.len())), "root", "b" + str(i), slot)
+        y += _mm-span(b, 1, slot)
       }
-      let mx = (from.at(0) + p.x) / 2
-      bezier(from, (p.x, p.y), (mx, from.at(1)), (mx, p.y),
-        stroke: (paint: nd.color, thickness: if nd.depth == 1 { 1.6pt } else { 0.9pt }))
+      spans.insert(str(sd), y)
     }
+    let pos = (:)
     for nd in nodes {
-      let p = pos.at(nd.id)
-      let hid = hidden(ctx, nd.item)
-      content((p.x, p.y), anchor: if p.side == 1 { "west" } else { "east" },
-        box(width: bw * 1cm, inset: 5pt, radius: 4pt,
-          fill: if hid or nd.depth > 1 { none } else { tint(nd.color, pct: 80%) },
-          stroke: if hid { (paint: T.muted, thickness: 0.7pt, dash: "dashed") }
-            else if nd.depth == 1 { 0.9pt + nd.color } else { (bottom: 0.9pt + nd.color) },
-          align(if p.side == 1 { left } else { right },
-            if hid { box(height: 1.1em) }
-            else if nd.depth == 1 { text(weight: "bold", answer(ctx, nd.item)) }
-            else { text(size: 0.9em, answer(ctx, nd.item)) })))
+      let L = spans.at(str(nd.side))
+      pos.insert(nd.id, (x: nd.side * xs(nd.depth), y: -(nd.y - L / 2), side: nd.side))
     }
-    content((0, 0), box(width: cw * 1cm, inset: 8pt, radius: 8pt, fill: tint(T.accent, pct: 70%),
-      stroke: 1.4pt + T.accent, align(center, text(weight: "bold", size: 1.1em, answer(ctx, hub)))))
-  })))
+    fit(T, height: true, align(center, cetz.canvas(length: 1cm, {
+      import cetz.draw: *
+      for nd in nodes {
+        let p = pos.at(nd.id)
+        let from = if nd.parent == "root" { (p.side * cw / 2, 0) } else {
+          let q = pos.at(nd.parent)
+          (q.x + q.side * bw, q.y)
+        }
+        let mx = (from.at(0) + p.x) / 2
+        let (a, c1, c2, b) = (from, (mx, from.at(1)), (mx, p.y), (p.x, p.y))
+        bezier(a, b, c1, c2,
+          stroke: (paint: nd.color, thickness: if nd.depth == 1 { 1.6pt } else { 0.9pt }))
+        // the cubic's own points, so the samples lie on the drawn curve
+        let pts = range(25).map(j => {
+          let u = j / 24
+          let wts = (calc.pow(1 - u, 3), 3 * calc.pow(1 - u, 2) * u, 3 * (1 - u) * calc.pow(u, 2), calc.pow(u, 3))
+          range(2).map(d => (a, c1, c2, b).zip(wts).map(((q, w)) => q.at(d) * w).sum())
+        })
+        content(a, _geo-pt("e" + nd.id, "edge", "curve " + nd.parent + "→" + nd.id, "path",
+          ends: (if nd.parent == "root" { "hub" } else { "m" + nd.parent }, "m" + nd.id), pts: pts))
+      }
+      _geo-frame(content, 1)
+      for nd in nodes {
+        let p = pos.at(nd.id)
+        content((p.x, p.y), anchor: if p.side == 1 { "west" } else { "east" },
+          _tracked("m" + nd.id, "node", mid(nd), node-box(nd.item, nd.depth, p.side, nd.color)))
+      }
+      content((0, 0), _tracked("hub", "node", "center " + repr(hub.text), box(width: cw * 1cm, inset: 8pt, radius: 8pt, fill: tint(T.accent, pct: 70%),
+        stroke: 1.4pt + T.accent, align(center, text(weight: "bold", size: 1.1em, answer(ctx, hub))))))
+    })))
+  }
 }
 
 #let _kwl-cols = (

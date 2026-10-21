@@ -56,12 +56,18 @@ checklist criteria observable, mind map nodes key words not sentences).
 5. Quote any string with a comma or a colon in it (`label: "if not possible, try"`). In
    YAML's `{…}` and `[…]` forms, an unquoted comma silently splits the text.
 6. `CLI check <path>`. Fix every problem it names. It exits 1 until the spec is valid.
+   For a concept map, flow chart or mind map it also prints a `warning (key, learner): …`
+   line for each pair of things the drawing would still put on top of each other. The
+   spec is valid (exit 0), but fix the picture before you show it: shorten the labels it
+   names, or move links away from the crowded node, then check again.
 
 ## 3. Render and show
 
 - `CLI render <path>` writes `<stem>.key.pdf`, `<stem>.learner.pdf`, `<stem>.key.png` and
   `<stem>.learner.png` next to the spec. Options: `--format pdf,png,svg`,
-  `--version key|learner`, `--dark` (PNG/SVG only), `--paper a4`, `--out-dir`.
+  `--version key|learner`, `--dark` (PNG/SVG only), `--paper a4`, `--out-dir`. A layout
+  warning from `check` repeats on stderr here and with `inline`; the files are still
+  written, so tell the user what overlaps if you show them anyway.
 - **In the terminal, with cc-intelligent-ui installed**: run `CLI inline <path>` (add
   `--version learner` for the learner view) and paste its output into your reply
   verbatim. It is a fenced `typst` block, and cc-intelligent-ui draws it in the
@@ -99,9 +105,10 @@ When the user edits the spec file themselves, re-read it before your next change
 
 ## Limits
 
-- Layout is automatic. Flow charts and concept maps are drawn in ranks, with loops bent
-  back. A crowded concept map can cross its dashed cross-links over boxes. If so, set
-  `level` on concepts or use fewer cross-links.
+- Layout is automatic. Flow charts and concept maps are drawn in ranks, with loops and
+  cross-links bent around the boxes between, and the ranks spread until no label or box
+  sits on another. Lines may still cross lines. When `check` still warns, shorten the
+  labels it names, set `level` on concepts, or use fewer links at the crowded node.
 - In a terminal picture, cc-intelligent-ui scales a drawing to fit the screen. Long
   tables grow the page instead.
 - Text is plain: no Markdown or Typst markup inside spec strings. `[[…]]` works only in

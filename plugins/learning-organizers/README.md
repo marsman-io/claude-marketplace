@@ -63,12 +63,20 @@ yourself:
 ```
 organizer.py types                          # the 13 types, one line each
 organizer.py new concept-map organizers/pt.yaml
-organizer.py check organizers/pt.yaml       # exit 1 with every problem listed
+organizer.py check organizers/pt.yaml       # exit 1 with every problem listed; layout warnings
 organizer.py render organizers/pt.yaml      # pt.key.pdf pt.learner.pdf pt.key.png pt.learner.png
 organizer.py render pt.yaml --format svg --version learner --dark --paper a4
 organizer.py inline organizers/pt.yaml      # the ```typst block cc-intelligent-ui draws
 organizer.py doctor
 ```
+
+For a concept map, flow chart or mind map, `check` also lays out both versions. When the
+drawing still puts one thing on top of another (a label over a label or a box, a line
+through a box or through another line's label), it prints a `warning (key, learner): …`
+line naming both (and the versions that draw it). It still exits 0, because the spec is valid and renders, but the picture
+needs shorter labels or fewer links at that node. `render` and `inline` print the same
+warnings on stderr and draw anyway. A layout `check` cannot read is an error (exit 2), not
+a pass.
 
 How the inline picture works: `inline` prints a three-line Typst block that imports
 `typst/organizers.typ` and points at the spec. cc-intelligent-ui compiles live
@@ -103,17 +111,31 @@ metadata, it confirms that no answer marked as a blank reaches the learner copy,
 an unmarked template shows the learner no answers at all. It also confirms:
 
 - each bad spec in `tests/bad/` is refused with its named problem;
+- in every concept map, flow chart and mind map example and every spec in `tests/layout/`,
+  in both versions, the render records one box per node and drawn label and one path per
+  edge, and no label or box is drawn over another, no line runs through a box other than
+  its ends, and no line runs through another line's label;
+- the deliberately dense `tests/layout/dense-decision.yaml` draws the collision its first
+  line names, and `check`, `render` and `inline` all warn about it;
+- the overlap check itself reports two boxes forced onto each other, and treats missing
+  records or boxes without area as an error, not a clean layout;
 - an edited spec gets a new inline revision;
 - when cc-intelligent-ui is installed, its own `md.typ` renderer draws the inline block in
   dark and light.
 
-Four mutations (hiding disabled, fill-in answers shown, a validator check removed, a fixed
-inline revision) each make it fail.
+Eight mutations each make it fail: hiding disabled, fill-in answers shown, a validator
+check removed, a fixed inline revision, geometry records zeroed, labels forced to their
+edge's midpoint, cross-links drawn straight with no rerouting, and the layout warning
+dropped from `check`.
 
 ## Limits
 
-- Layout is automatic. Dense concept maps can cross their dashed cross-links over boxes.
-  Set `level` on concepts to steer the layout.
+- Layout is automatic. Concept maps, flow charts and mind maps are spread out until no
+  label or box is drawn over another, and no line runs through a box or another line's
+  label. Lines may still cross other lines. When a dense graph cannot be drawn cleanly,
+  `check` warns and names the pair. Set `level` on concepts to steer a concept map.
+- The overlap check measures the drawn geometry with 1 pt of tolerance, so a line that
+  grazes a box by less is not reported.
 - Spec strings are plain text, with no Markdown inside an organizer.
 - Background sessions cannot draw terminal pictures. The PNG and PDF still render.
 - macOS is tested. Linux should work, with a different default font.

@@ -1,0 +1,18 @@
+# The same flow chart drawn left to right: ranks run along x.
+type: flow-chart
+title: Review loop, left to right
+direction: right
+steps:
+  - {id: start, kind: start, text: Draft received}
+  - {id: read, text: Read the draft}
+  - id: ok
+    kind: decision
+    text: Ready to publish?
+    branches:
+      - {label: "no, minor edits", to: edit}
+      - {label: "no, rewrite needed", to: start}
+      - {label: "yes", to: publish}
+      - {label: "needs legal review", to: legal}
+  - {id: edit, text: Fix the small things, next: read}
+  - {id: legal, kind: io, text: Send to legal, next: publish}
+  - {id: publish, kind: end, text: Publish}
