@@ -92,8 +92,10 @@ with tempfile.TemporaryDirectory() as tmp:
             graphs = organizer.assemble(records)
             want = organizer.expected_graphs(data)
             errs = organizer.validate_geometry(graphs, want)
-            counts = " + ".join(f"{sum(w[k] for w in want)} {k}s" for k in ("node", "label", "edge"))
-            expect(bool(want) and not errs, f"geometry {spec.name} ({version}): {len(records)} records for {counts}, every box with area {errs[:2]}")
+            got = [sum(1 for g in graphs.values() for el in g.values() if el["kind"] == k) for k in ("node", "label", "edge")]
+            need = [sum(w[k] for w in want) for k in ("node", "label", "edge")]
+            expect(bool(want) and not errs, f"geometry {spec.name} ({version}): {got[0]} node boxes + {got[1]} label boxes + "
+                   f"{got[2]} edge paths recorded, the spec draws {' + '.join(map(str, need))}, every box with area {errs[:2]}")
             hits = organizer.collisions(graphs)
             expect(not hits, f"layout {spec.name} ({version}) draws no collision {hits}")
             if spec.name == "concept-map.yaml" and version == "key":
