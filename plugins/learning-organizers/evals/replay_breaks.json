@@ -1,0 +1,4 @@
+{
+  "spec-is-not-a-handout-set": "type: handout",
+  "no-organizer-spec-written": "{\"type\":\"tool_use\",\"name\":\"Write\",\"input\":{\"file_path\":\"organizers/rainfall.yaml\",\"content\":\"type: t-chart\\n\"}}"
+}
