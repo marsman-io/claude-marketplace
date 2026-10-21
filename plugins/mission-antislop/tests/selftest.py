@@ -427,6 +427,13 @@ REWRITE_CASES = [
     ("wrapped-list", "tests/test_wl.py",
      "def test_wl():\n    assert f() == 1\n",
      "def test_wl():\n    assert f(), [\n        'x']\n", [("assertion-loosened", "review")]),
+    # a bracket in a string inside the condition neither opens nor closes anything
+    ("string-in-condition", "tests/test_sc.py",
+     "def test_sc():\n    assert f(\"(\") == 1\n",
+     "def test_sc():\n    assert f(\"(\")\n", [("assertion-loosened", "review")]),
+    ("escaped-in-condition", "tests/test_ec.py",
+     "def test_ec():\n    assert f(\"\\\"(\") == 1\n",
+     "def test_ec():\n    assert f(\"\\\"(\")\n", [("assertion-loosened", "review")]),
 ]
 
 
