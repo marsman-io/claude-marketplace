@@ -23,6 +23,7 @@ import sys
 from dataclasses import asdict, dataclass
 
 ALLOW_PRAGMA = "slop-scan: allow"
+ALLOW_NOTE = "author-granted exemption; confirm it is warranted"
 
 # --- path classes -----------------------------------------------------------------------
 
@@ -76,7 +77,7 @@ ADDED_RULES = [
      "code", None),
     ("swallowed-error", "high", re.compile(
         r"catch\s*(\([^)]*\))?\s*\{\s*\}"
-        r"|except\b[^:\n]*:\s*(pass|\.\.\.)\s*$"
+        r"|except\b[^:\n]*:\s*(pass|\.\.\.)\s*(#.*)?$"
         r"|\.catch\(\s*(\(\s*\w*\s*\)|\w+)\s*=>\s*(\{\s*\}|null|undefined|void 0|false)\s*\)"
         r"|\.catch\(\s*(noop|_\.noop)?\s*\)"),
      "code", None),
@@ -122,6 +123,42 @@ LOOSE_MATCHER = re.compile(
     r"\.(toBeDefined|toBeTruthy|toBeFalsy|toBeGreaterThan\w*|toBeLessThan\w*|toContain|toMatch"
     r"|toHaveBeenCalled|toBeInstanceOf)\(|\.not\.toBe(Null|Undefined)\("
     r"|\bassert(True|IsNotNone|Greater\w*|Less\w*)\b|\bassert\.ok\(|^\s*assert\s+\w+\s*$")
+# A bare truthiness `assert <expr>` (no comparison) counts as loose only where it is added:
+# counted where it is removed, it would cancel the loose one that replaced a strict one.
+TRUTHY_ASSERT = re.compile(r"^\s*assert\s+(?!.*(==|!=|<|>|\bis\b|\bin\b))\S")
+
+
+def truthy_assert(text: str) -> bool:
+    """A bare truthiness `assert <expr>` whose condition is whole on its line. The condition
+    ends at the first `,` outside brackets; what follows is the message, which may wrap. The
+    first line of a wrapped condition (a bracket left open, or a trailing `\\`) is not one:
+    its comparison sits on a later line. Nor is ExUnit's `assert <pattern> = <expr>`, a
+    match; a `=` inside brackets (`assert f(x=1)`) is a keyword argument and does not count."""
+    if not TRUTHY_ASSERT.search(text):
+        return False
+    depth, quote, end, i = 0, None, len(text), 0
+    while i < len(text):
+        ch = text[i]
+        if quote:
+            if ch == "\\":
+                i += 1
+            elif ch == quote:
+                quote = None
+        elif ch in "'\"":
+            quote = ch
+        elif ch == "#" or (ch == "," and depth == 0):
+            end = i
+            break
+        elif ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif ch == "=" and depth == 0 and text[i + 1:i + 2] != "~":
+            # `==`, `!=`, `<=`, `>=` and `=>` never get here: TRUTHY_ASSERT rejects their lines
+            return False
+        i += 1
+    return depth == 0 and not text[:end].rstrip().endswith(("(", "[", "{", "\\"))
+
 
 # --- report rules: (category, severity, pattern, note) ----------------------------------
 # Calibrated against ~33k lines of real completion reports and PR bodies. Wording rules that
@@ -238,6 +275,7 @@ class DiffScanner:
         self.assert_delta: dict[str, list] = {}  # path -> [added, removed, removed_lines]
         self.matchers: dict[str, list] = {}  # path -> [strict+, strict-, loose+, loose-, first_ln]
         self._pending: dict[str, tuple] = {}  # path -> (kind, open_ln, text, last_ln, has_reason)
+        self._truthy: dict[str, int] = {}  # path -> line of a truthiness assert not yet counted
 
     def wants_code_rules(self, path: str) -> bool:
         if SKIP_PATH.search(path):
@@ -247,16 +285,17 @@ class DiffScanner:
     def add(self, path: str, ln: int, text: str) -> None:
         self.added += 1
         self.files.add(path)
-        if DOC_PATH.search(path) and not SKIP_PATH.search(path) and ALLOW_PRAGMA not in text \
-                and SWEEP_CLAIM.search(INLINE_CODE.sub("", text)):
-            self.findings.append(Finding("review", "sweep-claim", f"{path}:{ln}", clip(text),
-                                         SWEEP_NOTE))
-        if not self.wants_code_rules(path):
-            return
         where = f"{path}:{ln}"
+        doc_sweep = DOC_PATH.search(path) and not SKIP_PATH.search(path) \
+            and SWEEP_CLAIM.search(INLINE_CODE.sub("", text))
         if ALLOW_PRAGMA in text:
-            self.findings.append(Finding("info", "allowed", where, clip(text),
-                                         "author-granted exemption; confirm it is warranted"))
+            # Listed once, whether it exempts the doc sweep, the code rules, or both.
+            if doc_sweep or self.wants_code_rules(path):
+                self.findings.append(Finding("info", "allowed", where, clip(text), ALLOW_NOTE))
+            return
+        if doc_sweep:
+            self.findings.append(Finding("review", "sweep-claim", where, clip(text), SWEEP_NOTE))
+        if not self.wants_code_rules(path):
             return
         self._track_empty_block(path, ln, text)
         comment_line = is_comment_only(text)
@@ -285,12 +324,28 @@ class DiffScanner:
 
     def _count_matcher(self, path: str, ln: int, text: str, added: bool) -> None:
         entry = self.matchers.setdefault(path, [0, 0, 0, 0, None])
+        if added:
+            self._settle_truthy(path, ln, text)
         if STRICT_MATCHER.search(text):
             entry[0 if added else 1] += 1
         elif LOOSE_MATCHER.search(text):
             entry[2 if added else 3] += 1
             if added and entry[4] is None:
                 entry[4] = ln
+        elif added and truthy_assert(text):
+            self._truthy[path] = ln
+
+    def _settle_truthy(self, path: str, ln: int = 0, text: str = "") -> None:
+        """Count a truthiness assert once the next added line of its file is seen. An Elixir
+        pipeline continued on the next line (`|>` first) carries the comparison there, so the
+        first line is not a whole assert and counts for nothing."""
+        last = self._truthy.pop(path, None)
+        if last is None or (ln == last + 1 and text.lstrip().startswith("|>")):
+            return
+        entry = self.matchers[path]
+        entry[2] += 1
+        if entry[4] is None:
+            entry[4] = last
 
     def _track_empty_block(self, path: str, ln: int, text: str) -> None:
         """Catch a catch/except whose body, across consecutive added lines, does nothing.
@@ -320,6 +375,8 @@ class DiffScanner:
             self._pending[path] = (opener, ln, text, ln, states_reason(text))
 
     def finish(self, deleted: list[str]) -> None:
+        for path in list(self._truthy):
+            self._settle_truthy(path)
         for path in deleted:
             if TEST_PATH.search(path):
                 self.findings.append(Finding("high", "test-deleted", path, "(whole file deleted)",
@@ -411,9 +468,14 @@ def scan_report(path: str, head_sha: str | None) -> list[Finding]:
         if stripped.startswith(("```", "~~~")):
             in_fence = not in_fence
             continue
-        if in_fence or stripped.startswith("#") or ALLOW_PRAGMA in line:
+        if in_fence or stripped.startswith("#"):
             continue
         prose = INLINE_CODE.sub("", line)
+        if ALLOW_PRAGMA in line:
+            # Listed when it exempts a wording rule or a test figure the provenance check counts.
+            if TEST_FIGURE.search(prose) or any(rule[2].search(prose) for rule in REPORT_RULES):
+                findings.append(Finding("info", "allowed", f"{path}:{i}", clip(line), ALLOW_NOTE))
+            continue
         if TEST_FIGURE.search(prose):
             figures.append(i)
         for category, severity, pattern, note in REPORT_RULES:
