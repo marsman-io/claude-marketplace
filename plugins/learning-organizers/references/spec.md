@@ -27,7 +27,9 @@ space: ruled lines, empty boxes or dashed nodes, per type. Answer fields are lis
 each type.
 
 **Layout.** Flow charts, mind maps and concept maps are laid out automatically; no field
-places a label or bends a line. `check` lays out both versions and prints a
+places a label or bends a line. Labels move along their line, lines bend and ranks spread
+until no label or box is drawn over another and no line runs through a box or another
+line's label; lines may still cross each other. `check` lays out both versions and prints a
 `warning (key, learner): …` line, naming both elements, for anything still drawn over
 something else. It exits 0, because the spec is valid, and `render` draws it anyway.
 
@@ -88,7 +90,7 @@ branches:
   - text: Branch
     children: [Leaf, {text: Leaf with children, children: [...]}, {text: Hidden, blank: true}]
 node-width: 3.4     # cm
-row-height: 1.15    # cm per leaf
+row-height: 1.15    # cm per leaf, at least; a leaf whose text wraps gets a taller row
 ```
 The branches split across both sides of the centre. Answer fields: every node except the
 centre.
@@ -102,7 +104,7 @@ concepts:
   - {id: b, text: Specific concept, level: 1}   # level optional; else derived from links
 links:
   - {from: a, to: b, label: includes}            # label = the linking phrase
-  - {from: c, to: a, label: affects, cross: true} # cross-link: dashed and curved
+  - {from: c, to: a, label: affects, cross: true} # cross-link: dashed, bent around the concepts between
 node-width: 34      # mm
 ```
 A label can be `{text: includes, blank: true}`, so the learner writes the linking phrase.

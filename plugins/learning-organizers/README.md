@@ -111,17 +111,31 @@ metadata, it confirms that no answer marked as a blank reaches the learner copy,
 an unmarked template shows the learner no answers at all. It also confirms:
 
 - each bad spec in `tests/bad/` is refused with its named problem;
+- in every concept map, flow chart and mind map example and every spec in `tests/layout/`,
+  in both versions, the render records one box per node and drawn label and one path per
+  edge, and no label or box is drawn over another, no line runs through a box other than
+  its ends, and no line runs through another line's label;
+- the deliberately dense `tests/layout/dense-decision.yaml` draws the collision its first
+  line names, and `check`, `render` and `inline` all warn about it;
+- the overlap check itself reports two boxes forced onto each other, and treats missing
+  records or boxes without area as an error, not a clean layout;
 - an edited spec gets a new inline revision;
 - when cc-intelligent-ui is installed, its own `md.typ` renderer draws the inline block in
   dark and light.
 
-Four mutations (hiding disabled, fill-in answers shown, a validator check removed, a fixed
-inline revision) each make it fail.
+Eight mutations each make it fail: hiding disabled, fill-in answers shown, a validator
+check removed, a fixed inline revision, geometry records zeroed, labels forced to their
+edge's midpoint, cross-links drawn straight with no rerouting, and the layout warning
+dropped from `check`.
 
 ## Limits
 
-- Layout is automatic. Dense concept maps can cross their dashed cross-links over boxes.
-  Set `level` on concepts to steer the layout.
+- Layout is automatic. Concept maps, flow charts and mind maps are spread out until no
+  label or box is drawn over another, and no line runs through a box or another line's
+  label. Lines may still cross other lines. When a dense graph cannot be drawn cleanly,
+  `check` warns and names the pair. Set `level` on concepts to steer a concept map.
+- The overlap check measures the drawn geometry with 1 pt of tolerance, so a line that
+  grazes a box by less is not reported.
 - Spec strings are plain text, with no Markdown inside an organizer.
 - Background sessions cannot draw terminal pictures. The PNG and PDF still render.
 - macOS is tested. Linux should work, with a different default font.

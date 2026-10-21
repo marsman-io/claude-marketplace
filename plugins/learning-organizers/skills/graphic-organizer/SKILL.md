@@ -105,9 +105,10 @@ When the user edits the spec file themselves, re-read it before your next change
 
 ## Limits
 
-- Layout is automatic. Flow charts and concept maps are drawn in ranks, with loops bent
-  back. A crowded concept map can cross its dashed cross-links over boxes. If so, set
-  `level` on concepts or use fewer cross-links.
+- Layout is automatic. Flow charts and concept maps are drawn in ranks, with loops and
+  cross-links bent around the boxes between, and the ranks spread until no label or box
+  sits on another. Lines may still cross lines. When `check` still warns, shorten the
+  labels it names, set `level` on concepts, or use fewer links at the crowded node.
 - In a terminal picture, cc-intelligent-ui scales a drawing to fit the screen. Long
   tables grow the page instead.
 - Text is plain: no Markdown or Typst markup inside spec strings. `[[…]]` works only in
