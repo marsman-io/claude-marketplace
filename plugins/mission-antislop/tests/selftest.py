@@ -380,6 +380,19 @@ REWRITE_CASES = [
     ("kwarg", "tests/test_kwarg.py",
      "def test_kwarg():\n    assert f(x=1) == 2\n",
      "def test_kwarg():\n    assert f(x=1)\n", [("assertion-loosened", "review")]),
+    ("backslash", "tests/test_bs.py",
+     "def test_bs():\n    assert compute(alpha, beta) == 1\n",
+     "def test_bs():\n    assert compute(alpha, beta) \\\n        == 1\n", []),
+    # brackets and `=` in a string or a comment do not make a truthiness assert whole or a match
+    ("message", "tests/test_msg.py",
+     "def test_msg():\n    assert f() == 1\n",
+     "def test_msg():\n    assert f(), \"want x = 1\"\n", [("assertion-loosened", "review")]),
+    ("escaped", "tests/test_esc.py",
+     "def test_esc():\n    assert f() == 1\n",
+     "def test_esc():\n    assert f(), \"a \\\"(\\\" b\"\n", [("assertion-loosened", "review")]),
+    ("comment", "tests/test_cmt.py",
+     "def test_cmt():\n    assert f() == 1\n",
+     "def test_cmt():\n    assert f()  # see (issue 12\n", [("assertion-loosened", "review")]),
 ]
 
 
