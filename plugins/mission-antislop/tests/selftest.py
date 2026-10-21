@@ -249,6 +249,8 @@ DIFF_HEAD = {
     # pragma
     "src/p1.ts": "const x = y as any; // slop-scan: allow\n",
     "src/p1m.ts": "const x = y as any; // slop-scan allow\n",
+    "NOTES-p.md": "intro\nevery caller is updated slop-scan: allow\n",
+    "NOTES-pq.md": "the `slop-scan: allow` pragma lists a line\n",
     # sweep-claim on doc lines
     "NOTES.md": "intro\nEvery caller is updated.\n",
     "NOTES-m.md": "The phrase `every caller` needs its search.\n",
@@ -317,6 +319,11 @@ DIFF_CASES = [
     (F("allowed"), "flag", "src/p1.ts:1", "plain", "info"),
     (F("allowed"), "miss", "src/p1m.ts:1", "plain", None),
     (A(10, "type-escape", "review"), "flag", "src/p1m.ts:1", "plain", None),
+    (F("allowed"), "flag", "NOTES-p.md:2", "plain", "info"),
+    (F("allowed"), "flag", "NOTES-p.md:2", "docs", "info"),
+    # current behaviour, intent open: see followup F2 (a pragma on a doc or report line that
+    # no rule would flag is not listed; on a scanned code line it always is)
+    (F("allowed"), "miss", "NOTES-pq.md:1", "plain", None),
     (F("sweep-claim"), "flag", "NOTES.md:2", "plain", "review"),
     (F("sweep-claim"), "miss", "NOTES-m.md:1", "plain", None),
     (F("sweep-claim"), "miss", "vendor/NOTES.md:1", "plain", None),
@@ -336,7 +343,8 @@ DIFF_CASES = [
 # --- C2/C3: report cases ----------------------------------------------------------------
 # One report file: each case's text, then a blank line; `line` is the case's line within
 # its text. A "flag" case asserts (category, severity) is among the findings at that line
-# (report rules do not stop at the first match); a "miss" asserts the category is absent.
+# (report rules do not stop at the first match), and an `allowed` line is the only finding
+# on its line; a "miss" asserts the category is absent.
 
 REPORT_CASES = [
     # (key, kind, text, line)
@@ -352,7 +360,11 @@ REPORT_CASES = [
     (R(4, "blanket-green", "review"), "miss", "# All tests pass", 1),
     (R(5, "out-of-scope", "review"), "flag", "Retries are out of scope here.", 1),
     (R(5, "out-of-scope", "review"), "miss", "~~~\nRetries are out of scope here.\n~~~", 2),
+    (F("allowed"), "flag", "Fixed it. All tests pass slop-scan: allow", 1),
+    (F("allowed"), "flag", "Ran it: 12 passed slop-scan: allow", 1),
     (F("allowed"), "miss", "```\nAll tests pass slop-scan: allow\n```", 2),
+    # current behaviour, intent open: see followup F2
+    (F("allowed"), "miss", "Reviewed the diff. slop-scan: allow", 1),
 ]
 
 # green-provenance: (kind, mode, report text); {head7} is the scanned head's short SHA.
@@ -425,8 +437,9 @@ def run_report_cases(box: Sandbox) -> None:
         cat = category_of(key)
         shown = text.replace("\n", " / ")
         if kind == "flag":
-            want = (cat, key[3])
-            expect(want in got, f"{case_name(key)} flags report line {place} {shown!r} (got {got})")
+            want = (cat, "info" if cat == "allowed" else key[3])
+            ok = got == [want] if cat == "allowed" else want in got
+            expect(ok, f"{case_name(key)} flags report line {place} {shown!r} (got {got})")
         else:
             expect(all(c != cat for c, _ in got),
                    f"{case_name(key)} near-miss report line {place} {shown!r} (got {got})")

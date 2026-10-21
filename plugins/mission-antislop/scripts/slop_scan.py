@@ -23,6 +23,7 @@ import sys
 from dataclasses import asdict, dataclass
 
 ALLOW_PRAGMA = "slop-scan: allow"
+ALLOW_NOTE = "author-granted exemption; confirm it is warranted"
 
 # --- path classes -----------------------------------------------------------------------
 
@@ -247,16 +248,17 @@ class DiffScanner:
     def add(self, path: str, ln: int, text: str) -> None:
         self.added += 1
         self.files.add(path)
-        if DOC_PATH.search(path) and not SKIP_PATH.search(path) and ALLOW_PRAGMA not in text \
-                and SWEEP_CLAIM.search(INLINE_CODE.sub("", text)):
-            self.findings.append(Finding("review", "sweep-claim", f"{path}:{ln}", clip(text),
-                                         SWEEP_NOTE))
-        if not self.wants_code_rules(path):
-            return
         where = f"{path}:{ln}"
+        doc_sweep = DOC_PATH.search(path) and not SKIP_PATH.search(path) \
+            and SWEEP_CLAIM.search(INLINE_CODE.sub("", text))
         if ALLOW_PRAGMA in text:
-            self.findings.append(Finding("info", "allowed", where, clip(text),
-                                         "author-granted exemption; confirm it is warranted"))
+            # Listed once, whether it exempts the doc sweep, the code rules, or both.
+            if doc_sweep or self.wants_code_rules(path):
+                self.findings.append(Finding("info", "allowed", where, clip(text), ALLOW_NOTE))
+            return
+        if doc_sweep:
+            self.findings.append(Finding("review", "sweep-claim", where, clip(text), SWEEP_NOTE))
+        if not self.wants_code_rules(path):
             return
         self._track_empty_block(path, ln, text)
         comment_line = is_comment_only(text)
@@ -411,9 +413,14 @@ def scan_report(path: str, head_sha: str | None) -> list[Finding]:
         if stripped.startswith(("```", "~~~")):
             in_fence = not in_fence
             continue
-        if in_fence or stripped.startswith("#") or ALLOW_PRAGMA in line:
+        if in_fence or stripped.startswith("#"):
             continue
         prose = INLINE_CODE.sub("", line)
+        if ALLOW_PRAGMA in line:
+            # Listed when it exempts a wording rule or a test figure the provenance check counts.
+            if TEST_FIGURE.search(prose) or any(rule[2].search(prose) for rule in REPORT_RULES):
+                findings.append(Finding("info", "allowed", f"{path}:{i}", clip(line), ALLOW_NOTE))
+            continue
         if TEST_FIGURE.search(prose):
             figures.append(i)
         for category, severity, pattern, note in REPORT_RULES:
