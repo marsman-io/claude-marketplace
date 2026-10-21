@@ -193,6 +193,7 @@ DIFF_BASE = {
     "tests/test_l6.py": "def test_l6():\n    assert x == 1\n    assert f()\n",
     "tests/l1.test.ts": "expect(total).toBe(3);\n",
     "tests/l1m.test.ts": "expect(total).toBe(3);\n",
+    "tests/HOWTO.md": "Write checks like this:\nassert total == 3\n",
     "tests/test_old.py": "# the retired parser suite\ndef test_old_parser():\n    assert parse('q') == 7\n",
     "src/old_helper.go": "package helper\n\nfunc Retired() int { return 41 }\n",
 }
@@ -268,6 +269,7 @@ DIFF_HEAD = {
     "tests/test_l6.py": "def test_l6():\n    assert ok\n    assert g() > 0\n",
     "tests/l1.test.ts": "expect(total).toBeTruthy();\n",
     "tests/l1m.test.ts": "expect(total).toEqual(3);\n",
+    "tests/HOWTO.md": "Write checks like this:\n",
     "tests/test_old.py": None,
     "src/old_helper.go": None,
 }
@@ -338,6 +340,9 @@ DIFF_CASES = [
     (F("assertion-removed"), "flag", "tests/test_rm.py:3", "plain", "high"),
     (F("assertion-removed"), "miss", "tests/test_rw.py", "plain", None),
     (F("assertion-removed"), "miss", "tests/test_old.py", "plain", None),
+    # current behaviour, intent open: see followup F5 (a removed line of a doc file under a
+    # test folder counts as an assertion; an added one is never counted)
+    (F("assertion-removed"), "flag", "tests/HOWTO.md:2", "plain", "high"),
     (F("assertion-loosened"), "flag", "tests/l1.test.ts:1", "plain", "review"),
     (F("assertion-loosened"), "flag", "tests/test_l2.py:2", "plain", "review"),
     (F("assertion-loosened"), "flag", "tests/test_l3.py:2", "plain", "review"),
@@ -374,6 +379,9 @@ REPORT_CASES = [
     (F("allowed"), "miss", "```\nAll tests pass slop-scan: allow\n```", 2),
     # current behaviour, intent open: see followup F2
     (F("allowed"), "miss", "Reviewed the diff. slop-scan: allow", 1),
+    # current behaviour, intent open: see followup F3 (a pragma quoted in inline code still
+    # exempts its line)
+    (F("allowed"), "flag", "Use `slop-scan: allow` sparingly; all tests pass.", 1),
 ]
 
 # green-provenance: (kind, mode, report text); {head7} is the scanned head's short SHA.
