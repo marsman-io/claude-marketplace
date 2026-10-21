@@ -231,6 +231,8 @@ DIFF_HEAD = {
     "src/a7p.py": "try:\n    run()\nexcept OSError: pass\n",
     "src/a7pr.py": "try:\n    run()\nexcept OSError: pass  # the file may already be gone\n",
     "src/a7pm.py": "try:\n    run()\nexcept OSError: pass_through()\n",
+    "src/a7pn.py": "try:\n    run()\nexcept:  pass  # noqa: E722\n",
+    "src/a7pt.py": "try:\n    run()\nexcept Exception: pass  # type: ignore\n",
     "src/a8.sh": "rm -f build.out || true\n",
     "src/a8m.sh": "# avoid || true in CI scripts\n",
     # suppression, any scope
@@ -307,6 +309,10 @@ DIFF_CASES = [
     (A(7, "swallowed-error", "high"), "flag", "src/a7p.py:3", "plain", None),
     (A(7, "swallowed-error", "high"), "flag", "src/a7pr.py:3", "plain", "review"),
     (A(7, "swallowed-error", "high"), "miss", "src/a7pm.py:3", "plain", None),
+    # a one-line except/pass carrying a suppression comment: row 7 comes before row 9 and
+    # first match wins, so it is swallowed-error (suppression on 71d5bc9), never both
+    (A(7, "swallowed-error", "high"), "flag", "src/a7pn.py:3", "plain", "review"),
+    (A(7, "swallowed-error", "high"), "flag", "src/a7pt.py:3", "plain", "review"),
     (A(8, "swallowed-error", "review"), "flag", "src/a8.sh:1", "plain", None),
     (A(8, "swallowed-error", "review"), "miss", "src/a8m.sh:1", "plain", None),
     (A(9, "suppression", "review"), "flag", "src/a9.ts:1", "plain", None),
