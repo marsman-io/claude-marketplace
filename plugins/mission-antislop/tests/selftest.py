@@ -396,6 +396,29 @@ REWRITE_CASES = [
     ("comment", "tests/test_cmt.py",
      "def test_cmt():\n    assert f() == 1\n",
      "def test_cmt():\n    assert f()  # see (issue 12\n", [("assertion-loosened", "review")]),
+    # an Elixir pipeline continued on a next line that begins with `|>` (`mix format`) is
+    # still the strict assert; with no continuation the shortened pipeline is a loosening
+    ("pipe", "test/foo_test.exs",
+     "defmodule FooTest do\n  test \"get\", %{conn: conn} do\n"
+     "    assert json_response(get(conn, \"/\"), 200) == %{\"ok\" => true}\n  end\nend\n",
+     "defmodule FooTest do\n  test \"get\", %{conn: conn} do\n"
+     "    assert get(conn, \"/\")\n           |> json_response(200) == %{\"ok\" => true}\n  end\nend\n", []),
+    ("pipe-length", "test/len_test.exs",
+     "defmodule LenTest do\n  test \"bar\" do\n    assert length(Foo.bar()) == 1\n  end\nend\n",
+     "defmodule LenTest do\n  test \"bar\" do\n    assert Foo.bar()\n           |> length() == 1\n  end\nend\n",
+     []),
+    ("pipe-dropped", "test/pipe_test.exs",
+     "defmodule PipeTest do\n  test \"get\", %{conn: conn} do\n"
+     "    assert get(conn, \"/\") |> json_response(200) == %{}\n  end\nend\n",
+     "defmodule PipeTest do\n  test \"get\", %{conn: conn} do\n    assert get(conn, \"/\")\n  end\nend\n",
+     [("assertion-loosened", "review")]),
+    # a `|>` line added further down, past an unchanged line, continues something else
+    ("pipe-apart", "test/apart_test.exs",
+     "defmodule ApartTest do\n  test \"bar\" do\n    assert Foo.bar() == 1\n"
+     "    data = Foo.list()\n    assert Enum.count(data) == 2\n  end\nend\n",
+     "defmodule ApartTest do\n  test \"bar\" do\n    assert Foo.bar()\n"
+     "    data = Foo.list()\n           |> Enum.sort()\n    assert Enum.count(data) == 2\n  end\nend\n",
+     [("assertion-loosened", "review")]),
 ]
 
 

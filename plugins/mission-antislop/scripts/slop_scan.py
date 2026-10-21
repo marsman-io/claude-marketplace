@@ -274,6 +274,7 @@ class DiffScanner:
         self.assert_delta: dict[str, list] = {}  # path -> [added, removed, removed_lines]
         self.matchers: dict[str, list] = {}  # path -> [strict+, strict-, loose+, loose-, first_ln]
         self._pending: dict[str, tuple] = {}  # path -> (kind, open_ln, text, last_ln, has_reason)
+        self._truthy: dict[str, int] = {}  # path -> line of a truthiness assert not yet counted
 
     def wants_code_rules(self, path: str) -> bool:
         if SKIP_PATH.search(path):
@@ -322,12 +323,28 @@ class DiffScanner:
 
     def _count_matcher(self, path: str, ln: int, text: str, added: bool) -> None:
         entry = self.matchers.setdefault(path, [0, 0, 0, 0, None])
+        if added:
+            self._settle_truthy(path, ln, text)
         if STRICT_MATCHER.search(text):
             entry[0 if added else 1] += 1
-        elif LOOSE_MATCHER.search(text) or (added and truthy_assert(text)):
+        elif LOOSE_MATCHER.search(text):
             entry[2 if added else 3] += 1
             if added and entry[4] is None:
                 entry[4] = ln
+        elif added and truthy_assert(text):
+            self._truthy[path] = ln
+
+    def _settle_truthy(self, path: str, ln: int = 0, text: str = "") -> None:
+        """Count a truthiness assert once the next added line of its file is seen. An Elixir
+        pipeline continued on the next line (`|>` first) carries the comparison there, so the
+        first line is not a whole assert and counts for nothing."""
+        last = self._truthy.pop(path, None)
+        if last is None or (ln == last + 1 and text.lstrip().startswith("|>")):
+            return
+        entry = self.matchers[path]
+        entry[2] += 1
+        if entry[4] is None:
+            entry[4] = last
 
     def _track_empty_block(self, path: str, ln: int, text: str) -> None:
         """Catch a catch/except whose body, across consecutive added lines, does nothing.
@@ -357,6 +374,8 @@ class DiffScanner:
             self._pending[path] = (opener, ln, text, ln, states_reason(text))
 
     def finish(self, deleted: list[str]) -> None:
+        for path in list(self._truthy):
+            self._settle_truthy(path)
         for path in deleted:
             if TEST_PATH.search(path):
                 self.findings.append(Finding("high", "test-deleted", path, "(whole file deleted)",
