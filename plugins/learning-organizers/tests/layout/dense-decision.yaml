@@ -1,0 +1,21 @@
+# expect-collision: arrow d→s4 "option number 4 with a long explanation" crosses label "option number 3 with a long explanation" on d→s3
+# Deliberately dense: six long branch labels fanning out of one decision do not all fit, so check warns.
+type: flow-chart
+title: Dense decision
+steps:
+  - id: d
+    kind: decision
+    text: Which way?
+    branches:
+      - {label: option number 0 with a long explanation, to: s0}
+      - {label: option number 1 with a long explanation, to: s1}
+      - {label: option number 2 with a long explanation, to: s2}
+      - {label: option number 3 with a long explanation, to: s3}
+      - {label: option number 4 with a long explanation, to: s4}
+      - {label: option number 5 with a long explanation, to: s5}
+  - {id: s0, kind: end, text: Step 0}
+  - {id: s1, kind: end, text: Step 1}
+  - {id: s2, kind: end, text: Step 2}
+  - {id: s3, kind: end, text: Step 3}
+  - {id: s4, kind: end, text: Step 4}
+  - {id: s5, kind: end, text: Step 5}

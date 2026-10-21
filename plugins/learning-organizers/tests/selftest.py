@@ -55,6 +55,7 @@ with tempfile.TemporaryDirectory() as tmp:
     for ex in examples:
         r = run("check", str(ex))
         expect(r.returncode == 0, f"check {ex.name}")
+        expect("warning" not in r.stdout, f"check {ex.name} gives no layout warning")
         r = run("render", str(ex), "--format", "pdf,png", "--ppi", "40", "--out-dir", str(out))
         files = r.stdout.split()
         expect(r.returncode == 0 and len(files) == 4 and all(Path(f).stat().st_size > 0 for f in files),
@@ -79,10 +80,24 @@ with tempfile.TemporaryDirectory() as tmp:
     # both versions, draws no node or label over another, no edge through a
     # node other than its ends and no edge through another edge's label. The
     # records must match the spec (one box per node and drawn label, one path
-    # per edge, every box with area), or the geometry was not read.
+    # per edge, every box with area), or the geometry was not read. A spec
+    # whose first line is `# expect-collision: <pair>` is deliberately dense:
+    # it must draw that collision, and check, render and inline must say so.
     layouts = [ex for ex in examples if ex.stem in organizer.GRAPHS] + sorted((ROOT / "tests" / "layout").glob("*.yaml"))
     reference = None
     for spec in layouts:
+        first = spec.read_text(encoding="utf-8").splitlines()[0]
+        dense = first.removeprefix("# expect-collision:").strip() if first.startswith("# expect-collision:") else None
+        if dense:
+            line = f"warning (key, learner): {dense}"
+            r = run("check", str(spec))
+            expect(r.returncode == 0 and f"  {line}\n" in r.stdout, f"check {spec.name} warns: {line!r}")
+            r = run("render", str(spec), "--format", "png", "--version", "key", "--ppi", "40", "--out-dir", str(out))
+            expect(r.returncode == 0 and line in r.stderr and Path(r.stdout.strip()).is_file(),
+                   f"render {spec.name} draws it and warns the same")
+            r = run("inline", str(spec))
+            expect(r.returncode == 0 and r.stdout.startswith("```typst") and line in r.stderr,
+                   f"inline {spec.name} prints the block and warns the same")
         for version in ("key", "learner"):
             try:
                 data, records = organizer.read_layout(spec, version)
@@ -97,7 +112,10 @@ with tempfile.TemporaryDirectory() as tmp:
             expect(bool(want) and not errs, f"geometry {spec.name} ({version}): {got[0]} node boxes + {got[1]} label boxes + "
                    f"{got[2]} edge paths recorded, the spec draws {' + '.join(map(str, need))}, every box with area {errs[:2]}")
             hits = organizer.collisions(graphs)
-            expect(not hits, f"layout {spec.name} ({version}) draws no collision {hits}")
+            if dense:
+                expect(dense in hits, f"layout {spec.name} ({version}) draws the collision it is built for {hits}")
+            else:
+                expect(not hits, f"layout {spec.name} ({version}) draws no collision {hits}")
             if spec.name == "concept-map.yaml" and version == "key":
                 reference = (graphs, want)
 

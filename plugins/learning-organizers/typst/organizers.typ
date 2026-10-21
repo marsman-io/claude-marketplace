@@ -315,8 +315,10 @@
 // edge, a straight edge that would run through a node) the first bend that
 // clears the nodes between its ends, then put every label at the first place
 // along its edge (position × side) that is clear of the nodes, the labels
-// already placed and the other edges. When some label has no clear place, the
-// ranks move apart in steps and both choices run again. This models
+// already placed and the other edges. When something stays blocked, or a
+// straight edge could only clear the nodes by bending, the ranks move apart in
+// steps and both choices run again; the first clean step wins, else the one
+// with the fewest collisions, then the fewest bent straight edges. This models
 // fletcher's own drawing (anchors, defocus, arcs, label anchors); the measured
 // geometry (`<organizer-geometry>`) is what checks the result.
 
@@ -484,6 +486,7 @@
     let polys = ns.map(_outline)
     let es = edges.map(e => { e.final-vertices = e.final-vertices.map(v => moved(v, extra)); e })
     let cost = 0
+    let bent = 0
     let paths = ()
     for (k, e) in es.enumerate() {
       let (i, j) = ends.at(k)
@@ -503,6 +506,7 @@
           if found == none or c2 < found.at(2) { found = (e2, p2, c2) }
           if c2 == 0 { break }
         }
+        if e.kind == "line" and found.at(0).kind == "arc" { bent += 1 }
         (e, p, c) = found
         es.at(k) = e
       }
@@ -544,8 +548,8 @@
         label-anchor: if side == center { "center" } else { e.label-anchor },
         label-sep: if side == center { 0pt } else { e.label-sep })
     }
-    if best == none or cost < best.at(2) { best = (ns, es, cost) }
-    if cost == 0 { break }
+    if best == none or (cost, bent) < best.at(2) { best = (ns, es, (cost, bent)) }
+    if cost == 0 and bent == 0 { break }
   }
   (best.at(0), best.at(1))
 }

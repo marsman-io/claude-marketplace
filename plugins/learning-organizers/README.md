@@ -63,12 +63,20 @@ yourself:
 ```
 organizer.py types                          # the 13 types, one line each
 organizer.py new concept-map organizers/pt.yaml
-organizer.py check organizers/pt.yaml       # exit 1 with every problem listed
+organizer.py check organizers/pt.yaml       # exit 1 with every problem listed; layout warnings
 organizer.py render organizers/pt.yaml      # pt.key.pdf pt.learner.pdf pt.key.png pt.learner.png
 organizer.py render pt.yaml --format svg --version learner --dark --paper a4
 organizer.py inline organizers/pt.yaml      # the ```typst block cc-intelligent-ui draws
 organizer.py doctor
 ```
+
+For a concept map, flow chart or mind map, `check` also lays out both versions. When the
+drawing still puts one thing on top of another (a label over a label or a box, a line
+through a box or through another line's label), it prints a `warning (key, learner): …`
+line naming both (and the versions that draw it). It still exits 0, because the spec is valid and renders, but the picture
+needs shorter labels or fewer links at that node. `render` and `inline` print the same
+warnings on stderr and draw anyway. A layout `check` cannot read is an error (exit 2), not
+a pass.
 
 How the inline picture works: `inline` prints a three-line Typst block that imports
 `typst/organizers.typ` and points at the spec. cc-intelligent-ui compiles live

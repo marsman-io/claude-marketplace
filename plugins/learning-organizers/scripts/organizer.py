@@ -6,7 +6,9 @@ is rebuilt from it with Typst (typst/organizers.typ). Stdlib only.
 
   organizer.py types                      list the organizer types
   organizer.py new <type> <path.yaml>     start a spec from the worked example
-  organizer.py check <spec>               validate (exit 1 on problems)
+  organizer.py check <spec>               validate (exit 1 on problems; a concept
+                                          map, flow chart or mind map whose drawing
+                                          keeps an overlap gets a warning line)
   organizer.py render <spec> [options]    write <stem>.<version>.<ext> files
   organizer.py inline <spec> [--version]  print a ```typst block that
                                           cc-intelligent-ui draws in the terminal
@@ -268,14 +270,38 @@ def collisions(graphs: dict[int, dict[str, dict]]) -> list[str]:
     return out
 
 
-def layout(spec: Path, version: str) -> list[str]:
-    """The collisions one version draws; GeometryError when that cannot be told."""
+def layout(spec: Path, version: str) -> list[str] | None:
+    """The collisions one version draws (None: it draws no graph); GeometryError when that cannot be told."""
     data, records = read_layout(spec, version)
+    want = expected_graphs(data)
+    if not want and not records:
+        return None
     graphs = assemble(records)
-    errs = validate_geometry(graphs, expected_graphs(data))
+    errs = validate_geometry(graphs, want)
     if errs:
         raise GeometryError("; ".join(errs))
     return collisions(graphs)
+
+
+def layout_warnings(spec: Path) -> list[str]:
+    """`warning (versions): <pair>` for every collision a valid spec's drawing keeps.
+    A layout the renderer could not settle is drawn anyway and reported here
+    (check, render and inline all say it); geometry that cannot be read is a
+    tool error (exit 2), never a clean layout."""
+    found: dict[str, list[str]] = {}
+    for version in ("key", "learner"):
+        try:
+            hits = layout(spec, version)
+        except GeometryError as e:
+            die(f"cannot tell whether {spec.name} lays out cleanly: {e}")
+        if hits is None:
+            return []
+        for h in hits:
+            found.setdefault(h, []).append(version)
+    return [f"warning ({', '.join(v)}): {h}" for h, v in found.items()]
+
+
+LAYOUT_HINT = "the drawing keeps these overlaps; shorter labels, or fewer links into and out of one node, usually clear them"
 
 
 def cmd_types(_: argparse.Namespace) -> None:
@@ -298,7 +324,23 @@ def cmd_new(a: argparse.Namespace) -> None:
 
 
 def cmd_check(a: argparse.Namespace) -> None:
-    sys.exit(1 if check(spec_path(a.spec)) else 0)
+    spec = spec_path(a.spec)
+    if check(spec):
+        sys.exit(1)
+    warnings = layout_warnings(spec)
+    for w in warnings:
+        print(f"  {w}")
+    if warnings:
+        print(f"  ({LAYOUT_HINT})")
+
+
+def warn_layout(spec: Path) -> None:
+    """render and inline draw a spec whose layout keeps overlaps, and say so on stderr."""
+    warnings = layout_warnings(spec)
+    for w in warnings:
+        print(f"organizer: {spec.name}: {w}", file=sys.stderr)
+    if warnings:
+        print(f"organizer: {spec.name}: {LAYOUT_HINT}", file=sys.stderr)
 
 
 def cmd_render(a: argparse.Namespace) -> None:
@@ -306,6 +348,7 @@ def cmd_render(a: argparse.Namespace) -> None:
     if check(spec, quiet=True):
         check(spec)
         sys.exit(1)
+    warn_layout(spec)
     out_dir = Path(a.out_dir).expanduser().resolve() if a.out_dir else spec.parent
     out_dir.mkdir(parents=True, exist_ok=True)
     written = []
@@ -347,6 +390,7 @@ def cmd_inline(a: argparse.Namespace) -> None:
     if check(spec, quiet=True):
         check(spec)
         sys.exit(1)
+    warn_layout(spec)
     rev = hashlib.sha256(spec.read_bytes()).hexdigest()[:8]
     lib = stable_lib()
     # The revision comment changes the block's text whenever the spec does,

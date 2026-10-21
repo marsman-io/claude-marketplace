@@ -26,6 +26,11 @@ an empty key, but a stray extra list item only shows up as a count mismatch, or 
 space: ruled lines, empty boxes or dashed nodes, per type. Answer fields are listed under
 each type.
 
+**Layout.** Flow charts, mind maps and concept maps are laid out automatically; no field
+places a label or bends a line. `check` lays out both versions and prints a
+`warning (key, learner): …` line, naming both elements, for anything still drawn over
+something else. It exits 0, because the spec is valid, and `render` draws it anyway.
+
 ## t-chart (portrait)
 
 ```yaml
