@@ -127,6 +127,38 @@ LOOSE_MATCHER = re.compile(
 # counted where it is removed, it would cancel the loose one that replaced a strict one.
 TRUTHY_ASSERT = re.compile(r"^\s*assert\s+(?!.*(==|!=|<|>|\bis\b|\bin\b))\S")
 
+
+def truthy_assert(text: str) -> bool:
+    """A bare truthiness `assert <expr>` that is whole on its line. The first line of a
+    wrapped assert (a bracket left open, or a trailing `\\`) is not one: its comparison sits
+    on a later line. Nor is ExUnit's `assert <pattern> = <expr>`, an exact match; a `=`
+    inside brackets (`assert f(x=1)`) is a keyword argument and does not count."""
+    if not TRUTHY_ASSERT.search(text):
+        return False
+    depth, quote, end, i = 0, None, len(text), 0
+    while i < len(text):
+        ch = text[i]
+        if quote:
+            if ch == "\\":
+                i += 1
+            elif ch == quote:
+                quote = None
+        elif ch in "'\"":
+            quote = ch
+        elif ch == "#":
+            end = i
+            break
+        elif ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif ch == "=" and depth == 0 and text[i - 1] not in "=!<>" \
+                and text[i + 1:i + 2] not in ("=", ">", "~"):
+            return False
+        i += 1
+    return depth == 0 and not text[:end].rstrip().endswith(("(", "[", "{", "\\"))
+
+
 # --- report rules: (category, severity, pattern, note) ----------------------------------
 # Calibrated against ~33k lines of real completion reports and PR bodies. Wording rules that
 # fired mostly on honest reporting ("partially refuted", "recorded as a follow-up") were cut:
@@ -292,7 +324,7 @@ class DiffScanner:
         entry = self.matchers.setdefault(path, [0, 0, 0, 0, None])
         if STRICT_MATCHER.search(text):
             entry[0 if added else 1] += 1
-        elif LOOSE_MATCHER.search(text) or (added and TRUTHY_ASSERT.search(text)):
+        elif LOOSE_MATCHER.search(text) or (added and truthy_assert(text)):
             entry[2 if added else 3] += 1
             if added and entry[4] is None:
                 entry[4] = ln

@@ -353,6 +353,25 @@ DIFF_CASES = [
     (F("assertion-loosened"), "miss", "tests/test_l5.py", "plain", None),
 ]
 
+# Assertion rewrites, each in its own repository: a strict one-line assert on main, the
+# branch's form of it, and the findings expected on that file (every one, at any line).
+REWRITE_CASES = [
+    # (name, path, base, head, findings on path)
+    ("black", "tests/test_black.py",
+     "def test_black():\n    assert compute(alpha, beta) == expected_value\n",
+     "def test_black():\n    assert (\n        compute(alpha, beta) == expected_value\n    )\n", []),
+    ("split", "tests/test_split.py",
+     "def test_split():\n    assert compute(alpha, beta) == 1\n",
+     "def test_split():\n    assert compute(\n        alpha, beta\n    ) == 1\n", []),
+    ("exunit", "tests/test_ex.exs",
+     "defmodule FooTest do\n  test \"bar\" do\n    assert Foo.bar() == {:ok, 1}\n  end\nend\n",
+     "defmodule FooTest do\n  test \"bar\" do\n    assert {:ok, 1} = Foo.bar()\n  end\nend\n", []),
+    # a `=` inside brackets is a keyword argument, not a pattern match: still a loosening
+    ("kwarg", "tests/test_kwarg.py",
+     "def test_kwarg():\n    assert f(x=1) == 2\n",
+     "def test_kwarg():\n    assert f(x=1)\n", [("assertion-loosened", "review")]),
+]
+
 
 # --- C2/C3: report cases ----------------------------------------------------------------
 # One report file: each case's text, then a blank line; `line` is the case's line within
@@ -435,6 +454,17 @@ def run_diff_cases(box: Sandbox) -> None:
         else:
             expect(all(c != cat for c, _ in got),
                    f"{case_name(key)} near-miss {where}: no {cat} [{run}] (got {got})")
+
+
+def run_rewrite_cases(box: Sandbox) -> None:
+    for name, path, base, head, want in REWRITE_CASES:
+        repo = box.repo(f"rewrite-{name}", {path: base})
+        box.commit(repo, {path: head})
+        result = box.scan("--repo", str(repo), "--base", "main", "--head", "HEAD",
+                          label=f"rewrite {name}")
+        got = result.under(path)
+        expect(result.code in (0, 1) and got == want,
+               f"assertion rewrite [{name}] {path}: findings {want} (got {got})")
 
 
 def run_report_cases(box: Sandbox) -> None:
@@ -589,6 +619,7 @@ check_coverage()
 with tempfile.TemporaryDirectory() as tmp:
     box = Sandbox(tmp)
     run_diff_cases(box)
+    run_rewrite_cases(box)
     run_report_cases(box)
     run_green_cases(box)
     run_exit_cases(box)
