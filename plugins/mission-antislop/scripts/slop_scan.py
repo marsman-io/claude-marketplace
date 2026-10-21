@@ -129,10 +129,11 @@ TRUTHY_ASSERT = re.compile(r"^\s*assert\s+(?!.*(==|!=|<|>|\bis\b|\bin\b))\S")
 
 
 def truthy_assert(text: str) -> bool:
-    """A bare truthiness `assert <expr>` that is whole on its line. The first line of a
-    wrapped assert (a bracket left open, or a trailing `\\`) is not one: its comparison sits
-    on a later line. Nor is ExUnit's `assert <pattern> = <expr>`, an exact match; a `=`
-    inside brackets (`assert f(x=1)`) is a keyword argument and does not count."""
+    """A bare truthiness `assert <expr>` whose condition is whole on its line. The condition
+    ends at the first `,` outside brackets; what follows is the message, which may wrap. The
+    first line of a wrapped condition (a bracket left open, or a trailing `\\`) is not one:
+    its comparison sits on a later line. Nor is ExUnit's `assert <pattern> = <expr>`, a
+    match; a `=` inside brackets (`assert f(x=1)`) is a keyword argument and does not count."""
     if not TRUTHY_ASSERT.search(text):
         return False
     depth, quote, end, i = 0, None, len(text), 0
@@ -145,7 +146,7 @@ def truthy_assert(text: str) -> bool:
                 quote = None
         elif ch in "'\"":
             quote = ch
-        elif ch == "#":
+        elif ch == "#" or (ch == "," and depth == 0):
             end = i
             break
         elif ch in "([{":

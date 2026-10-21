@@ -419,6 +419,14 @@ REWRITE_CASES = [
      "defmodule ApartTest do\n  test \"bar\" do\n    assert Foo.bar()\n"
      "    data = Foo.list()\n           |> Enum.sort()\n    assert Enum.count(data) == 2\n  end\nend\n",
      [("assertion-loosened", "review")]),
+    # only the condition, before the first `,` outside brackets, can be wrapped: a wrapped
+    # message after a whole truthiness condition is still a loosening
+    ("wrapped-message", "tests/test_wm.py",
+     "def test_wm():\n    assert result == expected\n",
+     "def test_wm():\n    assert result, (\n        \"long message\"\n    )\n", [("assertion-loosened", "review")]),
+    ("wrapped-list", "tests/test_wl.py",
+     "def test_wl():\n    assert f() == 1\n",
+     "def test_wl():\n    assert f(), [\n        'x']\n", [("assertion-loosened", "review")]),
 ]
 
 
