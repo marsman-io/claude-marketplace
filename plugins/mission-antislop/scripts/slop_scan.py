@@ -123,6 +123,9 @@ LOOSE_MATCHER = re.compile(
     r"\.(toBeDefined|toBeTruthy|toBeFalsy|toBeGreaterThan\w*|toBeLessThan\w*|toContain|toMatch"
     r"|toHaveBeenCalled|toBeInstanceOf)\(|\.not\.toBe(Null|Undefined)\("
     r"|\bassert(True|IsNotNone|Greater\w*|Less\w*)\b|\bassert\.ok\(|^\s*assert\s+\w+\s*$")
+# A bare truthiness `assert <expr>` (no comparison) counts as loose only where it is added:
+# counted where it is removed, it would cancel the loose one that replaced a strict one.
+TRUTHY_ASSERT = re.compile(r"^\s*assert\s+(?!.*(==|!=|<|>|\bis\b|\bin\b))\S")
 
 # --- report rules: (category, severity, pattern, note) ----------------------------------
 # Calibrated against ~33k lines of real completion reports and PR bodies. Wording rules that
@@ -289,7 +292,7 @@ class DiffScanner:
         entry = self.matchers.setdefault(path, [0, 0, 0, 0, None])
         if STRICT_MATCHER.search(text):
             entry[0 if added else 1] += 1
-        elif LOOSE_MATCHER.search(text):
+        elif LOOSE_MATCHER.search(text) or (added and TRUTHY_ASSERT.search(text)):
             entry[2 if added else 3] += 1
             if added and entry[4] is None:
                 entry[4] = ln
