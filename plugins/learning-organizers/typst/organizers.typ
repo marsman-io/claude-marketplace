@@ -296,9 +296,27 @@
 })
 
 // Samples of a drawn fletcher edge: a straight line's two ends, a polyline's
-// corners, an arc's points every few degrees.
+// corners rounded as fletcher rounds them (draw-edge-polyline), an arc's
+// points every few degrees.
 #let _edge-samples(edge, kind, verts) = {
-  if kind == "arc" {
+  if kind == "poly" and edge.corner-radius != none {
+    let θs = range(verts.len() - 1).map(i => fletcher.utils.angle-between(verts.at(i), verts.at(i + 1)))
+    let pts = (verts.first(),)
+    for i in range(1, verts.len() - 1) {
+      let Δθ = fletcher.utils.wrap-angle-180(θs.at(i) - θs.at(i - 1))
+      let dir = if Δθ > 0deg { 1 } else { -1 }
+      let r = edge.corner-radius * (1 + calc.cos(Δθ))
+      if edge.extrude != () { r += if dir > 0 { calc.max(..edge.extrude) } else { -calc.min(..edge.extrude) } }
+      r *= dir
+      if calc.abs(Δθ) > 179deg or calc.abs(Δθ) <= 1deg { pts.push(verts.at(i)); continue }
+      let c = fletcher.cetz.vector.add(verts.at(i), fletcher.utils.vector-polar(r / calc.cos(Δθ / 2), θs.at(i - 1) + Δθ / 2 + 90deg))
+      let n = 12
+      for j in range(n + 1) {
+        pts.push(fletcher.cetz.vector.add(c, fletcher.utils.vector-polar(r, θs.at(i - 1) - 90deg + Δθ * j / n)))
+      }
+    }
+    pts + (verts.last(),)
+  } else if kind == "arc" {
     let (from, to) = verts
     let (center, radius, start, stop) = fletcher.utils.get-arc-connecting-points(from, to, edge.bend)
     let n = 48
