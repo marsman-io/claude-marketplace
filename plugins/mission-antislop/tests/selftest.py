@@ -434,6 +434,11 @@ REWRITE_CASES = [
     ("escaped-in-condition", "tests/test_ec.py",
      "def test_ec():\n    assert f(\"\\\"(\") == 1\n",
      "def test_ec():\n    assert f(\"\\\"(\")\n", [("assertion-loosened", "review")]),
+    # ExUnit's `=~` is a contains/regex match, not a pattern match: still a loosening
+    ("match-op", "test/page_test.exs",
+     "defmodule PageTest do\n  test \"home\" do\n    assert html == \"Welcome\"\n  end\nend\n",
+     "defmodule PageTest do\n  test \"home\" do\n    assert html =~ \"Welcome\"\n  end\nend\n",
+     [("assertion-loosened", "review")]),
 ]
 
 
