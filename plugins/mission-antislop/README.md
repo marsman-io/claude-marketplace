@@ -92,6 +92,27 @@ Every hit is a lead to read, not a verdict.
 when `--no-diff` is given an explicit `--repo`. It checks that the head SHA is named, not
 that every figure was run there. A report that names a stale SHA needs the audit's step 4.
 
+## Tests
+
+```
+python3 tests/selftest.py
+```
+
+The self-test runs the scanner's own command line against throwaway git repositories and
+report files, and proves that each rule row and each category the scanner emits flags a line
+it must flag, with its severity and `path:line`, and leaves a near-miss alone. It reads the
+rule tables from the code, so a rule added without cases fails it. It also confirms:
+
+- the exit codes: `0`, `1` at or above `--fail-on`, and `2` for a usage or git error, with
+  the cause on stderr;
+- the `--json` shape, with counts that match the findings;
+- a `slop-scan: allow` line is listed under `allowed` on code, doc and report lines;
+- the category table above names exactly the code's categories.
+
+The git it runs never reads your git config. Fifty-three mutations each make it fail. They include
+breaking each rule's pattern, dropping the pragma listing, shifting an exit code and
+renaming a category.
+
 ## Validation
 
 Both review skills were blind-tested on archived missions whose review outcome was already
@@ -129,6 +150,8 @@ skills/
   antislop-audit/SKILL.md
 scripts/
   slop_scan.py
+tests/
+  selftest.py
 docs/
   Mission slop.md
   Slop patterns.md
